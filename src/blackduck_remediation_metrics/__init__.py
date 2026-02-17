@@ -8,7 +8,7 @@ A Python module for extracting and analyzing remediation status metrics from Bla
 :license: MIT
 """
 
-__version__ = "0.1.17"
+__version__ = "0.1.19"
 __author__ = "Jouni Lehto"
 
 from .blackduck_triage_extract import main

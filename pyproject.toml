@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blackduck-remediation-metrics"
-version = "0.1.17"
+version = "0.1.19"
 description = "A Python module for extracting and analyzing remediation status metrics from Black Duck"
 readme = "README.md"
 authors = [
@@ -48,8 +48,8 @@ playwright = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jounilehto/blackduck-remediation-metrics"
-Repository = "https://github.com/jounilehto/blackduck-remediation-metrics"
+Homepage = "https://github.com/lejouni/blackduck-remediation-metrics"
+Repository = "https://github.com/lejouni/blackduck-remediation-metrics"
 
 [project.scripts]
 blackduck-remediation-metrics = "blackduck_remediation_metrics.blackduck_triage_extract:main"
