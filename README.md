@@ -111,6 +111,60 @@ bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --distributionCategories="E
 bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --dir="./reports" --html --pdf
 ```
 
+## Command-Line Parameters
+
+### Required Parameters
+
+| Parameter | Description | Environment Variable |
+|-----------|-------------|---------------------|
+| `--url` | Base URL for Black Duck Hub | `BD_URL` |
+| `--token` | Black Duck access token | `BD_TOKEN` |
+
+**Note:** Both parameters can be set via environment variables instead of command-line arguments.
+
+### Project/Version Filtering
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--project` | Filter by specific Black Duck project name | None (all projects) |
+| `--version` | Filter by specific project version name (requires `--project`) | None (all versions) |
+| `--project_group_name` | Filter by project group name (includes sub-groups recursively) | None |
+
+### Phase and Distribution Filtering
+
+| Parameter | Description | Default | Options |
+|-----------|-------------|---------|---------|
+| `--phaseCategories` | Comma-separated list of version phases to include | All phases | `PLANNING`, `DEVELOPMENT`, `RELEASED`, `DEPRECATED`, `ARCHIVED`, `PRERELEASE` |
+| `--distributionCategories` | Comma-separated list of version distributions to include | All distributions | `EXTERNAL`, `SAAS`, `INTERNAL`, `OPENSOURCE` |
+
+### Report Generation Options
+
+| Parameter | Description | Type |
+|-----------|-------------|------|
+| `--html` | Generate HTML report | Flag |
+| `--pdf` | Generate PDF report (requires wkhtmltopdf) | Flag |
+| `--json` | Generate JSON report | Flag |
+| `--csv` | Generate CSV report | Flag |
+| `--dashboard` | Generate interactive dashboard HTML report with charts | Flag |
+
+**Note:** You can specify multiple report types in a single run.
+
+### Cache and Database Options
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--cache` | Use TinyDB as a cache for improved performance on subsequent runs | Disabled |
+| `--db_file` | TinyDB database file path | `bd_remediation_db.json` |
+| `--cache_truncate` | Clean/truncate the cache file before running | Disabled |
+
+### Output and Logging Options
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--dir` | Output directory for generated reports | `.` (current directory) |
+| `--log_level` | Logging level for console output | `INFO` |
+| `--sinceDays` | Number of days to mark project versions as dormant (shows warning icon) | `30` |
+
 ### Environment Variables
 
 You can set token and URL parameters as environment variables:
