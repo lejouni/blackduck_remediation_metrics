@@ -35,10 +35,10 @@ python blackduck_triage_extract.py --token="<ACCESS_TOKEN>" --url="<BD_URL>" --c
 
 #To run HTML and PDF report for all projects in given project group. This will collect all projects from given project group and
 #also all projects from sub project groups recursively.
-python blackduck_triage_extract.py --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project_group_name="<PROJECT_GROUP_NAME>" --html --pdf
+python blackduck_triage_extract.py --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project-group="<PROJECT_GROUP_NAME>" --html --pdf
 
 #To run HTML and PDF report for given project and version
-python blackduck_triage_extract.py --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project="<PROJECT_NAME>" --version="<PROJECT_VERSION_NAME>" --html --pdf
+python blackduck_triage_extract.py --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project="<PROJECT_NAME>" --project-version="<PROJECT_VERSION_NAME>" --html --pdf
 
 #To limit projects based on project version phases DEVELOPMENT and PLANNING. Options are: PLANNING,DEVELOPMENT,RELEASED,DEPRECATED,ARCHIVED,PRERELEASE
 python blackduck_triage_extract.py --token="<ACCESS_TOKEN>" --url="<BD_URL>" --phaseCategories="PLANNING,DEVELOPMENT" --html --pdf
@@ -75,6 +75,7 @@ Version History:
 0.1.17 - Added link to policy violation from policy name in the report
 0.1.18 - Fixed pyproject.toml license configuration for PEP 639 compliance
 0.1.19 - Added comprehensive command-line parameter documentation to README
+0.1.20 - Added -v/--version flag, renamed --version to --project-version, renamed --project_group_name to --project-group
 '''
 import logging
 import sys
@@ -99,7 +100,7 @@ except ImportError:
 
 
 __author__ = "Jouni Lehto"
-__version__ = "0.1.19"
+__version__ = "0.1.20"
 
 #Global variables
 args = "" 
@@ -285,7 +286,7 @@ def addFindings():
                         # Always filter cached data to match specified criteria
                         projectLevelCount = filterProjectDataByFilters(
                             projectLevelCount, 
-                            versionName=args.version if args.version else None,
+                            versionName=args.project_version if args.project_version else None,
                             phaseCategories=phaseList,
                             distributionCategories=distributionList
                         )
@@ -448,8 +449,8 @@ def filterProjectDataByFilters(projectLevelCount, versionName=None, phaseCategor
 
 
 def getProjectMetrics(hub, project, projectLevelCount, instanceLevelCount):
-    if args.version:
-        parameters={"filter":f'{createPhaseFilterForVersions()}',"filter":f'{createDistributionFilterForVersions()}', 'q':"versionName:{}".format(args.version)}
+    if args.project_version:
+        parameters={"filter":f'{createPhaseFilterForVersions()}',"filter":f'{createDistributionFilterForVersions()}', 'q':"versionName:{}".format(args.project_version)}
         versions = get_project_versions(hub, project=project, limit=MAX_LIMIT, parameters=parameters)
     else:
         parameters={"filter":f'{createPhaseFilterForVersions()}',"filter":f'{createDistributionFilterForVersions()}'}
@@ -776,11 +777,12 @@ def main():
             description="Black Duck Metrics by Remediation Status."
         )
         #Parse commandline arguments
+        parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
         parser.add_argument('--url', default=os.environ.get('BD_URL'), help="Baseurl for Black Duck Hub", required=False)
         parser.add_argument('--token', default=os.environ.get('BD_TOKEN'), help="BD Access token", required=False)
         parser.add_argument('--project', help="BD project name", required=False)
-        parser.add_argument('--project_group_name', help="BD project group name", required=False)
-        parser.add_argument('--version', help="BD project version name", required=False)
+        parser.add_argument('--project-group', dest='project_group_name', help="BD project group name", required=False)
+        parser.add_argument('--project-version', dest='project_version', help="BD project version name", required=False)
         parser.add_argument('--phaseCategories', help="Comma separated list of version phases, which will be selected. \
             Options are [PLANNING,DEVELOPMENT,RELEASED,DEPRECATED,ARCHIVED,PRERELEASE], default=\"PLANNING,DEVELOPMENT,RELEASED,DEPRECATED,ARCHIVED,PRERELEASE\"", default="PLANNING,DEVELOPMENT,RELEASED,DEPRECATED,ARCHIVED,PRERELEASE")
         parser.add_argument('--distributionCategories', help="Comma separated list of version distributions, which will be selected. \
@@ -844,7 +846,7 @@ def main():
                         distibutions = args.distributionCategories,
                         projectGroup = args.project_group_name,
                         project = args.project,
-                        version = args.version,
+                        version = args.project_version,
                         sinceDays = args.sinceDays
                     )
                     
@@ -867,7 +869,7 @@ def main():
                                             distibutions = args.distributionCategories,
                                             projectGroup = args.project_group_name,
                                             project = args.project,
-                                            version = args.version,
+                                            version = args.project_version,
                                             sinceDays = args.sinceDays,
                                             totals = totals)
                     tqdm.write("Done")

@@ -89,7 +89,7 @@ bd-metrics --cache --html --pdf
 ### Filter by project
 
 ```bash
-bd-metrics --project="MyProject" --version="1.0" --html
+bd-metrics --project="MyProject" --project-version="1.0" --html
 ```
 
 ### Save reports to specific directory

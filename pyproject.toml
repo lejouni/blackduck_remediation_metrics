@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blackduck-remediation-metrics"
-version = "0.1.19"
+version = "0.1.20"
 description = "A Python module for extracting and analyzing remediation status metrics from Black Duck"
 readme = "README.md"
 authors = [

@@ -63,6 +63,14 @@ Click "+ Create Token", give it a name and Scope: "Read and Write Access", then 
 
 ### Command Line Interface
 
+#### Print version
+
+```bash
+bd-metrics --version
+# or
+bd-metrics -v
+```
+
 #### Generate HTML and PDF reports for all projects
 
 ```bash
@@ -84,13 +92,13 @@ bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --cache --html --pdf --json
 #### Filter by project group
 
 ```bash
-bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project_group_name="<PROJECT_GROUP_NAME>" --html --pdf
+bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project-group="<PROJECT_GROUP_NAME>" --html --pdf
 ```
 
 #### Filter by specific project and version
 
 ```bash
-bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project="<PROJECT_NAME>" --version="<PROJECT_VERSION_NAME>" --html --pdf
+bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --project="<PROJECT_NAME>" --project-version="<PROJECT_VERSION_NAME>" --html --pdf
 ```
 
 #### Filter by phase categories
@@ -127,8 +135,8 @@ bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --dir="./reports" --html --
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--project` | Filter by specific Black Duck project name | None (all projects) |
-| `--version` | Filter by specific project version name (requires `--project`) | None (all versions) |
-| `--project_group_name` | Filter by project group name (includes sub-groups recursively) | None |
+| `--project-version` | Filter by specific project version name (requires `--project`) | None (all versions) |
+| `--project-group` | Filter by project group name (includes sub-groups recursively) | None |
 
 ### Phase and Distribution Filtering
 
@@ -160,8 +168,7 @@ bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --dir="./reports" --html --
 ### Output and Logging Options
 
 | Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--dir` | Output directory for generated reports | `.` (current directory) |
+|-----------|-------------|---------|| `-v`, `--version` | Display version information and exit | N/A || `--dir` | Output directory for generated reports | `.` (current directory) |
 | `--log_level` | Logging level for console output | `INFO` |
 | `--sinceDays` | Number of days to mark project versions as dormant (shows warning icon) | `30` |
 
@@ -226,6 +233,7 @@ blackduck-remediation-metrics/
 
 ## Version History
 
+- 0.1.20 - Added -v/--version flag, renamed parameters to --project-version and --project-group for consistency
 - 0.1.19 - Added comprehensive command-line parameter documentation to README
 - 0.1.18 - Fixed pyproject.toml license configuration for PEP 639 compliance
 - 0.1.17 - Added new look and feel, added policy violations, added data visualization
