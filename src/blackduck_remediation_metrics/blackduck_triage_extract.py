@@ -17,12 +17,6 @@ Pdfkit requires that you have wkhtmltopdf installed and in your path. (https://w
 
 This script is using template: BD_Results_Distribution_by_Triage_Status_v3.html. This template must be in templates -folder.
 
-BD_report:
-├─templates
-    ├─BD_Results_Distribution_by_Triage_Status_v3.html
-├─blackduck_triage_extract.py
-├─requirements.txt
-
 To get AccessToken, use your Internet browser and go to:
 <BD_URL>/api/current-user/tokens?limit=100&offset=0
 From there click "+ Create Token" -button and give the name and Scope: "Read and Write Access" and click "Create" -button.
@@ -103,7 +97,7 @@ except ImportError:
 
 
 __author__ = "Jouni Lehto"
-__version__="0.1.17"
+__version__ = "0.1.17"
 
 #Global variables
 args = "" 
