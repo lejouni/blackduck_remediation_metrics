@@ -48,8 +48,8 @@ playwright = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lejouni/blackduck-remediation-metrics"
-Repository = "https://github.com/lejouni/blackduck-remediation-metrics"
+Homepage = "https://github.com/lejouni/blackduck_remediation_metrics"
+Repository = "https://github.com/lejouni/blackduck_remediation_metrics"
 
 [project.scripts]
 blackduck-remediation-metrics = "blackduck_remediation_metrics.blackduck_triage_extract:main"
