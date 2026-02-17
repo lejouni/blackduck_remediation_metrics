@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.19] - 2026-02-17
+
+### Added
+- Comprehensive command-line parameter documentation to README with tables
+- All 18 parameters organized into logical groups with descriptions and defaults
+
+### Changed
+- README now includes detailed parameter reference section
+
+## [0.1.18] - 2026-02-17
+
+### Fixed
+- Fixed pyproject.toml license configuration to comply with PEP 639
+- Removed deprecated "License :: OSI Approved :: MIT License" classifier
+
+### Added
+- Release automation script (release.ps1) for building and publishing packages
+- Install automation script (install.ps1) for development and production installation
+- Automatic version updating across all files during release
+
 ## [0.1.17] - 2026-02-16
 
 ### Added

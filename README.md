@@ -226,6 +226,8 @@ blackduck-remediation-metrics/
 
 ## Version History
 
+- 0.1.19 - Added comprehensive command-line parameter documentation to README
+- 0.1.18 - Fixed pyproject.toml license configuration for PEP 639 compliance
 - 0.1.17 - Added new look and feel, added policy violations, added data visualization
 - 0.1.16 - Added link to policy violation from policy name in the report
 - 0.1.15 - Fixed issue where totalCount key was missing
