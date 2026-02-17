@@ -7,7 +7,7 @@
 Install from source:
 
 ```bash
-cd c:\Users\JouniLehto\repos\blackduck_remediation_metrics
+cd c:\repos\blackduck_remediation_metrics
 pip install -e .
 ```
 
