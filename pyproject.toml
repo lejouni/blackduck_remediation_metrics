@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blackduck-remediation-metrics"
+version = "0.1.17"
+description = "A Python module for extracting and analyzing remediation status metrics from Black Duck"
+readme = "README.md"
+authors = [
+    {name = "Jouni Lehto", email = "lehto.jouni@gmail.com"}
+]
+license = "MIT"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "tinydb",
+    "BetterJSONStorage",
+    "requests",
+    "blackduck",
+    "jinja2",
+    "pdfkit",
+    "pandas",
+    "polling",
+    "openpyxl",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "mypy",
+]
+playwright = [
+    "playwright",
+]
+
+[project.urls]
+Homepage = "https://github.com/jounilehto/blackduck-remediation-metrics"
+Repository = "https://github.com/jounilehto/blackduck-remediation-metrics"
+
+[project.scripts]
+blackduck-remediation-metrics = "blackduck_remediation_metrics.blackduck_triage_extract:main"
+bd-metrics = "blackduck_remediation_metrics.blackduck_triage_extract:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+blackduck_remediation_metrics = ["templates/*.html"]
+
+[tool.black]
+line-length = 120
+target-version = ["py38", "py39", "py310", "py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

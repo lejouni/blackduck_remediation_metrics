@@ -1,0 +1,10 @@
+tinydb
+BetterJSONStorage
+requests
+blackduck
+jinja2
+pdfkit
+pandas
+polling
+openpyxl
+tqdm
