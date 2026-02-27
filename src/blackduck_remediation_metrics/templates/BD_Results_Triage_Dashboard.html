@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Duck Triage Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .header .meta {
+            color: #666;
+            font-size: 14px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-card.critical .value { color: #e53e3e; }
+        .stat-card.high .value { color: #dd6b20; }
+        .stat-card.medium .value { color: #d69e2e; }
+        .stat-card.low .value { color: #38a169; }
+        .stat-card.total .value { color: #667eea; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .chart-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .chart-container.tall {
+            height: 400px;
+        }
+        
+        .projects-table {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        .projects-table h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f7fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:hover {
+            background: #f7fafc;
+        }
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .severity-critical { background: #fed7d7; color: #c53030; }
+        .severity-high { background: #feebc8; color: #c05621; }
+        .severity-medium { background: #fefcbf; color: #b7791f; }
+        .severity-low { background: #c6f6d5; color: #276749; }
+        
+        .policy-section {
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Black Duck Security Triage Dashboard</h1>
+            <div class="meta">
+                <strong>Black Duck URL:</strong> {{ bdURL }}<br>
+                <strong>Report Generated:</strong> {{ reportTime }}<br>
+                <strong>Total Projects:</strong> {{ data.ProjectTotalCount }}<br>
+                <strong>Total Versions:</strong> {{ data.ProjectTotalVersionCount }}
+            </div>
+            <div class="meta" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                <strong style="color: #667eea;">Scope & Filters:</strong><br>
+                {% if projectGroup is not none %}
+                <strong>Project Group:</strong> {{ projectGroup }} (including sub-groups)<br>
+                {% endif %}
+                {% if project is not none %}
+                <strong>Project:</strong> {{ project }}<br>
+                {% endif %}
+                {% if version is not none %}
+                <strong>Version:</strong> {{ version }}<br>
+                {% endif %}
+                <strong>Phases:</strong> {{ phases }}<br>
+                <strong>Distributions:</strong> {{ distibutions }}<br>
+                {% if sinceDays is not none %}
+                <strong>Dormant Threshold:</strong> Projects not scanned in {{ sinceDays }} days
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="label">Total Vulnerabilities</div>
+                <div class="value">{{ data.Total }}</div>
+            </div>
+            <div class="stat-card critical">
+                <div class="label">Critical</div>
+                <div class="value">{{ data.NEW.CRITICAL + data.IGNORED.CRITICAL }}</div>
+            </div>
+            <div class="stat-card high">
+                <div class="label">High</div>
+                <div class="value">{{ data.NEW.HIGH + data.IGNORED.HIGH }}</div>
+            </div>
+            <div class="stat-card medium">
+                <div class="label">Medium</div>
+                <div class="value">{{ data.NEW.MEDIUM + data.IGNORED.MEDIUM }}</div>
+            </div>
+            <div class="stat-card low">
+                <div class="label">Low</div>
+                <div class="value">{{ data.NEW.LOW + data.IGNORED.LOW }}</div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="label">Total Policy Violations</div>
+                <div class="value">{{ data.policyViolations.UNCATEGORIZED.Total + data.policyViolations.COMPONENT.Total + data.policyViolations.LICENSE.Total + data.policyViolations.SECURITY.Total + data.policyViolations.OPERATIONAL.Total }}</div>
+            </div>
+            <div class="stat-card critical">
+                <div class="label">Blocker</div>
+                <div class="value">{{ data.policyViolations.COMPONENT.BLOCKER + data.policyViolations.LICENSE.BLOCKER + data.policyViolations.SECURITY.BLOCKER + data.policyViolations.OPERATIONAL.BLOCKER + data.policyViolations.UNCATEGORIZED.BLOCKER }}</div>
+            </div>
+            <div class="stat-card critical">
+                <div class="label">Critical</div>
+                <div class="value">{{ data.policyViolations.COMPONENT.CRITICAL + data.policyViolations.LICENSE.CRITICAL + data.policyViolations.SECURITY.CRITICAL + data.policyViolations.OPERATIONAL.CRITICAL + data.policyViolations.UNCATEGORIZED.CRITICAL }}</div>
+            </div>
+            <div class="stat-card high">
+                <div class="label">Major</div>
+                <div class="value">{{ data.policyViolations.COMPONENT.MAJOR + data.policyViolations.LICENSE.MAJOR + data.policyViolations.SECURITY.MAJOR + data.policyViolations.OPERATIONAL.MAJOR + data.policyViolations.UNCATEGORIZED.MAJOR }}</div>
+            </div>
+            <div class="stat-card medium">
+                <div class="label">Minor</div>
+                <div class="value">{{ data.policyViolations.COMPONENT.MINOR + data.policyViolations.LICENSE.MINOR + data.policyViolations.SECURITY.MINOR + data.policyViolations.OPERATIONAL.MINOR + data.policyViolations.UNCATEGORIZED.MINOR }}</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>Vulnerabilities by Severity</h2>
+                <div class="chart-container">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>Remediation Status Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="remediationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>Severity by Remediation Status</h2>
+                <div class="chart-container tall">
+                    <canvas id="severityByStatusChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>Policy Violations by Category</h2>
+                <div class="chart-container tall">
+                    <canvas id="policyChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>Policy Violations by Severity</h2>
+                <div class="chart-container tall">
+                    <canvas id="policySeverityChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>Snippet Review Status</h2>
+                <div class="chart-container">
+                    <canvas id="snippetChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="projects-table">
+            <h2>Project Details</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Total Vulns</th>
+                        <th>Critical</th>
+                        <th>High</th>
+                        <th>Medium</th>
+                        <th>Low</th>
+                        <th>Policy Violations</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set sorted_projects = data.projects | sort(attribute='Total', reverse=True) %}
+                    {% for project in sorted_projects %}
+                    <tr>
+                        <td>
+                            {% if project.isDormant == True %}
+                            <span style='color:red'>&#9888;&nbsp;</span>
+                            {% endif %}
+                            <strong>{{ project.projectName }}</strong>
+                        </td>
+                        <td>{{ project.Total }}</td>
+                        <td>
+                            {% if (project.NEW.CRITICAL + project.IGNORED.CRITICAL) > 0 %}
+                            <span class="severity-badge severity-critical">{{ project.NEW.CRITICAL + project.IGNORED.CRITICAL }}</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if (project.NEW.HIGH + project.IGNORED.HIGH) > 0 %}
+                            <span class="severity-badge severity-high">{{ project.NEW.HIGH + project.IGNORED.HIGH }}</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if (project.NEW.MEDIUM + project.IGNORED.MEDIUM) > 0 %}
+                            <span class="severity-badge severity-medium">{{ project.NEW.MEDIUM + project.IGNORED.MEDIUM }}</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if (project.NEW.LOW + project.IGNORED.LOW) > 0 %}
+                            <span class="severity-badge severity-low">{{ project.NEW.LOW + project.IGNORED.LOW }}</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>{{ project.policyViolations.COMPONENT.Total + project.policyViolations.LICENSE.Total + project.policyViolations.SECURITY.Total }}</td>
+                        <td>{{ project.updatedAt[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const data = {{ dataJson | safe }};
+        
+        // Chart.js default settings
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+        Chart.defaults.color = '#4a5568';
+        
+        // Severity Pie Chart
+        const severityCtx = document.getElementById('severityChart');
+        new Chart(severityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Critical', 'High', 'Medium', 'Low'],
+                datasets: [{
+                    data: [
+                        data.NEW.CRITICAL + data.IGNORED.CRITICAL + data.NEEDS_REVIEW.CRITICAL + data.PATCHED.CRITICAL + data.MITIGATED.CRITICAL,
+                        data.NEW.HIGH + data.IGNORED.HIGH + data.NEEDS_REVIEW.HIGH + data.PATCHED.HIGH + data.MITIGATED.HIGH,
+                        data.NEW.MEDIUM + data.IGNORED.MEDIUM + data.NEEDS_REVIEW.MEDIUM + data.PATCHED.MEDIUM + data.MITIGATED.MEDIUM,
+                        data.NEW.LOW + data.IGNORED.LOW + data.NEEDS_REVIEW.LOW + data.PATCHED.LOW + data.MITIGATED.LOW
+                    ],
+                    backgroundColor: ['#e53e3e', '#dd6b20', '#d69e2e', '#38a169'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 15, font: { size: 12 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Remediation Status Bar Chart
+        const remediationCtx = document.getElementById('remediationChart');
+        const remediationData = {
+            'NEW': data.NEW.Total,
+            'IGNORED': data.IGNORED.Total,
+            'NEEDS REVIEW': data.NEEDS_REVIEW.Total,
+            'PATCHED': data.PATCHED.Total,
+            'MITIGATED': data.MITIGATED.Total,
+            'DUPLICATE': data.DUPLICATE.Total,
+            'REMEDIATION REQUIRED': data.REMEDIATION_REQUIRED.Total,
+            'REMEDIATION COMPLETE': data.REMEDIATION_COMPLETE.Total,
+            'NOT AFFECTED': data.NOT_AFFECTED.Total,
+            'AFFECTED': data.AFFECTED.Total,
+            'UNDER INVESTIGATION': data.UNDER_INVESTIGATION.Total
+        };
+        const remediationFiltered = Object.entries(remediationData).filter(([k, v]) => v > 0);
+        
+        new Chart(remediationCtx, {
+            type: 'bar',
+            data: {
+                labels: remediationFiltered.map(([k]) => k),
+                datasets: [{
+                    label: 'Count',
+                    data: remediationFiltered.map(([k, v]) => v),
+                    backgroundColor: '#3182ce',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+
+        // Severity by Status Stacked Bar Chart
+        const severityByStatusCtx = document.getElementById('severityByStatusChart');
+        const statuses = ['NEW', 'IGNORED', 'NEEDS_REVIEW', 'PATCHED', 'MITIGATED'];
+        const statusLabels = ['New', 'Ignored', 'Needs Review', 'Patched', 'Mitigated'];
+        
+        new Chart(severityByStatusCtx, {
+            type: 'bar',
+            data: {
+                labels: statusLabels,
+                datasets: [
+                    {
+                        label: 'Critical',
+                        data: statuses.map(s => data[s].CRITICAL),
+                        backgroundColor: '#e53e3e'
+                    },
+                    {
+                        label: 'High',
+                        data: statuses.map(s => data[s].HIGH),
+                        backgroundColor: '#dd6b20'
+                    },
+                    {
+                        label: 'Medium',
+                        data: statuses.map(s => data[s].MEDIUM),
+                        backgroundColor: '#d69e2e'
+                    },
+                    {
+                        label: 'Low',
+                        data: statuses.map(s => data[s].LOW),
+                        backgroundColor: '#38a169'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 15 }
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { 
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+
+        // Policy Violations Chart
+        const policyCtx = document.getElementById('policyChart');
+        const policyTypes = ['UNCATEGORIZED', 'COMPONENT', 'LICENSE', 'SECURITY', 'OPERATIONAL'];
+        const policyLabels = ['Uncategorized', 'Component', 'License', 'Security', 'Operational'];
+        const policySeverities = ['BLOCKER', 'CRITICAL', 'MAJOR', 'MINOR', 'TRIVIAL', 'UNSPECIFIED'];
+        const policyColors = ['#742a2a', '#e53e3e', '#dd6b20', '#d69e2e', '#718096', '#a0aec0'];
+        
+        // Policy details with severity information
+        const policyDetails = data.policyDetails || {};
+        
+        new Chart(policyCtx, {
+            type: 'bar',
+            data: {
+                labels: policyLabels,
+                datasets: [
+                    {
+                        label: 'Blocker',
+                        data: policyTypes.map(type => data.policyViolations[type].BLOCKER),
+                        backgroundColor: policyColors[0]
+                    },
+                    {
+                        label: 'Critical',
+                        data: policyTypes.map(type => data.policyViolations[type].CRITICAL),
+                        backgroundColor: policyColors[1]
+                    },
+                    {
+                        label: 'Major',
+                        data: policyTypes.map(type => data.policyViolations[type].MAJOR),
+                        backgroundColor: policyColors[2]
+                    },
+                    {
+                        label: 'Minor',
+                        data: policyTypes.map(type => data.policyViolations[type].MINOR),
+                        backgroundColor: policyColors[3]
+                    },
+                    {
+                        label: 'Trivial',
+                        data: policyTypes.map(type => data.policyViolations[type].TRIVIAL),
+                        backgroundColor: policyColors[4]
+                    },
+                    {
+                        label: 'Unspecified',
+                        data: policyTypes.map(type => data.policyViolations[type].UNSPECIFIED),
+                        backgroundColor: policyColors[5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 15 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                // Map label to category
+                                const categoryMap = {
+                                    'Uncategorized': 'UNCATEGORIZED',
+                                    'Component': 'COMPONENT',
+                                    'License': 'LICENSE',
+                                    'Security': 'SECURITY',
+                                    'Operational': 'OPERATIONAL'
+                                };
+                                const category = categoryMap[context.label];
+                                const severityIndex = context.datasetIndex;
+                                const severity = policySeverities[severityIndex];
+                                
+                                // Show policy breakdown for this category filtered by severity
+                                if (category && policyDetails[category] && Object.keys(policyDetails[category]).length > 0) {
+                                    let details = '\n\nPolicy Details (' + severity + '):';
+                                    let foundPolicies = false;
+                                    
+                                    // Filter policies by matching severity
+                                    const filteredPolicies = [];
+                                    for (const [policyName, policyData] of Object.entries(policyDetails[category])) {
+                                        if (policyData.severity === severity) {
+                                            filteredPolicies.push([policyName, policyData.totalCount]);
+                                        }
+                                    }
+                                    
+                                    // Sort by count (descending)
+                                    filteredPolicies.sort((a, b) => b[1] - a[1]);
+                                    
+                                    for (const [policy, count] of filteredPolicies) {
+                                        details += '\n  • ' + policy + ': ' + count;
+                                        foundPolicies = true;
+                                    }
+                                    
+                                    return foundPolicies ? details : '';
+                                }
+                                return '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { 
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+
+        // Policy Violations by Policy Name Chart (Horizontal bar chart)
+        const policySeverityCtx = document.getElementById('policySeverityChart');
+        
+        // Collect all policies with their counts and metadata
+        const allPolicies = [];
+        for (const category of policyTypes) {
+            if (policyDetails[category]) {
+                for (const [policyName, policyData] of Object.entries(policyDetails[category])) {
+                    allPolicies.push({
+                        name: policyName,
+                        count: policyData.totalCount,
+                        severity: policyData.severity,
+                        category: category
+                    });
+                }
+            }
+        }
+        
+        // Sort by count descending and take top policies (limit to avoid overcrowding)
+        allPolicies.sort((a, b) => b.count - a.count);
+        const topPolicies = allPolicies.slice(0, 20); // Show top 20 policies
+        
+        const policyNames = topPolicies.map(p => p.name);
+        const policyCounts = topPolicies.map(p => p.count);
+        const policyChartColors = topPolicies.map(p => {
+            const severityIndex = policySeverities.indexOf(p.severity);
+            return policyColors[severityIndex] || '#718096';
+        });
+        
+        new Chart(policySeverityCtx, {
+            type: 'bar',
+            data: {
+                labels: policyNames,
+                datasets: [{
+                    label: 'Policy Violations',
+                    data: policyCounts,
+                    backgroundColor: policyChartColors,
+                    borderWidth: 1,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const policy = topPolicies[context.dataIndex];
+                                const categoryLabel = policyLabels[policyTypes.indexOf(policy.category)];
+                                
+                                let details = '\n\nSeverity: ' + policy.severity;
+                                details += '\nCategory: ' + categoryLabel;
+                                
+                                // Show project/version breakdown
+                                if (policyDetails[policy.category] && policyDetails[policy.category][policy.name]) {
+                                    const projectData = policyDetails[policy.category][policy.name].projects;
+                                    const projectCount = Object.keys(projectData).length;
+                                    let versionCount = 0;
+                                    for (const proj of Object.values(projectData)) {
+                                        versionCount += proj.versions.length;
+                                    }
+                                    details += '\n\nAffects:';
+                                    details += '\n  • ' + projectCount + ' project(s)';
+                                    details += '\n  • ' + versionCount + ' version(s)';
+                                }
+                                
+                                return details;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        title: {
+                            display: true,
+                            text: 'Violation Count'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Policy Name'
+                        },
+                        ticks: {
+                            autoSkip: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Snippet Status Pie Chart
+        const snippetCtx = document.getElementById('snippetChart');
+        const snippetTotal = data.SNIPPET.Total;
+        if (snippetTotal > 0) {
+            new Chart(snippetCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Unreviewed', 'Reviewed', 'Ignored'],
+                    datasets: [{
+                        data: [
+                            data.SNIPPET.unreviewed,
+                            data.SNIPPET.reviewed,
+                            data.SNIPPET.ignored
+                        ],
+                        backgroundColor: [
+                            '#dd6b20',  // Orange for unreviewed
+                            '#38a169',  // Green for reviewed
+                            '#718096'   // Gray for ignored
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': ' + value + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            // Display message when no snippets found
+            snippetCtx.parentElement.innerHTML = '<p style="text-align: center; color: #718096; padding: 60px 20px;">No snippets found</p>';
+        }
+    </script>
+</body>
+</html>

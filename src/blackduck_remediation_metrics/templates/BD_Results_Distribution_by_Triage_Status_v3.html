@@ -1,0 +1,1847 @@
+<HTML>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .header-section {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+      }
+      .header-section h1 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+      .header-section h2 {
+        color: #4a5568;
+        margin-bottom: 20px;
+        font-size: 16px;
+        font-weight: 400;
+      }
+      .header-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      .info-box {
+        background: #f7fafc;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+      .info-box h3 {
+        color: #2c3e50;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .info-box p {
+        color: #4a5568;
+        font-size: 14px;
+        margin: 4px 0;
+        line-height: 1.5;
+      }
+      .info-box .value {
+        color: #2c3e50;
+        font-weight: 600;
+      }
+      .info-box.warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+      }
+      .info-box.warning h3 {
+        color: #92400e;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+      }
+      .stat-card .value {
+        font-size: 36px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+      .stat-card .label {
+        color: #666;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .stat-card.critical .value { color: #e53e3e; }
+      .stat-card.high .value { color: #dd6b20; }
+      .stat-card.medium .value { color: #d69e2e; }
+      .stat-card.low .value { color: #38a169; }
+      .stat-card.total .value { color: #667eea; }
+      
+      .charts-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+      }
+      .charts-section h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 30px;
+        margin-top: 20px;
+      }
+      .chart-container {
+        position: relative;
+        height: 300px;
+      }
+      .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 15px;
+      }
+      
+      table, th, td {  
+        border: 1px solid #ddd;  
+        border-collapse: collapse;  
+      }  
+      th, td {  
+        padding: 8px;
+      }
+      table#alter {
+        background: white;
+        width: 100%;
+        margin: 15px 0;
+      }
+      table#alter tr:nth-child(even) {  
+        background-color: #f9f9f9; 
+      }  
+      table#alter tr:nth-child(odd) {  
+        background-color: #fff;  
+      }  
+      table#alter th {  
+        color: white;  
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-weight: 600;
+      }  
+      table#alter th a:any-link {
+        color: white;
+      }
+      #policyViolationsTable, #totalIssuesTable {
+        background: white;
+        width: 100%;
+        margin: 15px 0;
+      }
+      #policyViolationsTable tr:nth-child(even), #totalIssuesTable tr:nth-child(even) {  
+        background-color: #f9f9f9; 
+      }  
+      #policyViolationsTable tr:nth-child(odd), #totalIssuesTable tr:nth-child(odd) {  
+        background-color: #fff;  
+      }  
+      #policyViolationsTable th, #totalIssuesTable th {  
+        color: white;  
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-weight: 600;
+        border: 1px solid #ddd;
+      }
+      .sortable {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        padding-right: 20px !important;
+      }
+      .sortable:hover {
+        background: linear-gradient(135deg, #7b8ff0 0%, #8a5db5 100%) !important;
+      }
+      .sortable::after {
+        content: '⇅';
+        position: absolute;
+        right: 8px;
+        opacity: 0.5;
+        font-size: 12px;
+      }
+      .sortable.asc::after {
+        content: '▲';
+        opacity: 1;
+      }
+      .sortable.desc::after {
+        content: '▼';
+        opacity: 1;
+      }
+      .content-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+      }
+      .content-section h1, .content-section h2 {
+        color: #667eea;
+        margin-bottom: 15px;
+      }
+      @media (max-width: 768px) {
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>  
+<title>BD Report</Title>
+<body>
+<div class="header-section">
+  <h1>Black Duck Security Status Report</h1>
+  <h2>Generated on {{ reportTime }}</h2>
+  
+  <div class="header-info-grid">
+    <div class="info-box">
+      <h3>Instance Details</h3>
+      <p><strong>Black Duck URL:</strong> {{ bdURL }}</p>
+      <p><strong>Projects Analyzed:</strong> <span class="value">{{totals['ProjectTotalCount']}}</span></p>
+      <p><strong>Project Versions:</strong> <span class="value">{{totals['ProjectTotalVersionCount']}}</span></p>
+    </div>
+    
+    <div class="info-box">
+      <h3>Scope & Filters</h3>
+      {% if projectGroup is not none %}
+      <p><strong>Project Group:</strong> {{projectGroup}} (including sub-groups)</p>
+      {% endif %}
+      {% if project is not none %}
+      <p><strong>Project:</strong> {{project}}</p>
+      {% endif %}
+      {% if version is not none %}
+      <p><strong>Version:</strong> {{version}}</p>
+      {% endif %}
+      <p><strong>Phases:</strong> {{phases}}</p>
+      <p><strong>Distributions:</strong> {{distibutions}}</p>
+    </div>
+    
+    {% if silentDays is not none %}
+    <div class="info-box warning">
+      <h3>Dormant Projects Alert</h3>
+      <p><span style='color:#f59e0b; font-size:18px;'>&#9888;</span> Projects not scanned in the last <strong>{{sinceDays}} days</strong> are marked with a warning icon</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card total">
+    <div class="label">Total Vulnerabilities</div>
+    <div class="value">{{ totals['Total'] }}</div>
+  </div>
+  <div class="stat-card critical">
+    <div class="label">Critical</div>
+    <div class="value">{{ totals['NEW']['CRITICAL']+totals['IGNORED']['CRITICAL']+totals['DUPLICATE']['CRITICAL']+totals['MITIGATED']['CRITICAL']+totals['NEEDS_REVIEW']['CRITICAL']+totals['PATCHED']['CRITICAL']+totals['REMEDIATION_COMPLETE']['CRITICAL']+totals['REMEDIATION_REQUIRED']['CRITICAL']+totals['NOT_AFFECTED']['CRITICAL']+totals['AFFECTED']['CRITICAL']+totals['UNDER_INVESTIGATION']['CRITICAL']}}</div>
+  </div>
+  <div class="stat-card high">
+    <div class="label">High</div>
+    <div class="value">{{ totals['NEW']['HIGH']+totals['IGNORED']['HIGH']+totals['DUPLICATE']['HIGH']+totals['MITIGATED']['HIGH']+totals['NEEDS_REVIEW']['HIGH']+totals['PATCHED']['HIGH']+totals['REMEDIATION_COMPLETE']['HIGH']+totals['REMEDIATION_REQUIRED']['HIGH']+totals['NOT_AFFECTED']['HIGH']+totals['AFFECTED']['HIGH']+totals['UNDER_INVESTIGATION']['HIGH']}}</div>
+  </div>
+  <div class="stat-card medium">
+    <div class="label">Medium</div>
+    <div class="value">{{ totals['NEW']['MEDIUM']+totals['IGNORED']['MEDIUM']+totals['DUPLICATE']['MEDIUM']+totals['MITIGATED']['MEDIUM']+totals['NEEDS_REVIEW']['MEDIUM']+totals['PATCHED']['MEDIUM']+totals['REMEDIATION_COMPLETE']['MEDIUM']+totals['REMEDIATION_REQUIRED']['MEDIUM']+totals['NOT_AFFECTED']['MEDIUM']+totals['AFFECTED']['MEDIUM']+totals['UNDER_INVESTIGATION']['MEDIUM']}}</div>
+  </div>
+  <div class="stat-card low">
+    <div class="label">Low</div>
+    <div class="value">{{ totals['NEW']['LOW']+totals['IGNORED']['LOW']+totals['DUPLICATE']['LOW']+totals['MITIGATED']['LOW']+totals['NEEDS_REVIEW']['LOW']+totals['PATCHED']['LOW']+totals['REMEDIATION_COMPLETE']['LOW']+totals['REMEDIATION_REQUIRED']['LOW']+totals['NOT_AFFECTED']['LOW']+totals['AFFECTED']['LOW']+totals['UNDER_INVESTIGATION']['LOW']}}</div>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card total">
+    <div class="label">Total Policy Violations</div>
+    <div class="value">{{ totals['policyViolations']['COMPONENT']['Total'] + totals['policyViolations']['LICENSE']['Total'] + totals['policyViolations']['SECURITY']['Total'] + totals['policyViolations']['OPERATIONAL']['Total'] + totals['policyViolations']['UNCATEGORIZED']['Total'] }}</div>
+  </div>
+  <div class="stat-card critical">
+    <div class="label">Blocker</div>
+    <div class="value">{{ totals['policyViolations']['COMPONENT']['BLOCKER'] + totals['policyViolations']['LICENSE']['BLOCKER'] + totals['policyViolations']['SECURITY']['BLOCKER'] + totals['policyViolations']['OPERATIONAL']['BLOCKER'] + totals['policyViolations']['UNCATEGORIZED']['BLOCKER'] }}</div>
+  </div>
+  <div class="stat-card critical">
+    <div class="label">Critical</div>
+    <div class="value">{{ totals['policyViolations']['COMPONENT']['CRITICAL'] + totals['policyViolations']['LICENSE']['CRITICAL'] + totals['policyViolations']['SECURITY']['CRITICAL'] + totals['policyViolations']['OPERATIONAL']['CRITICAL'] + totals['policyViolations']['UNCATEGORIZED']['CRITICAL'] }}</div>
+  </div>
+  <div class="stat-card high">
+    <div class="label">Major</div>
+    <div class="value">{{ totals['policyViolations']['COMPONENT']['MAJOR'] + totals['policyViolations']['LICENSE']['MAJOR'] + totals['policyViolations']['SECURITY']['MAJOR'] + totals['policyViolations']['OPERATIONAL']['MAJOR'] + totals['policyViolations']['UNCATEGORIZED']['MAJOR'] }}</div>
+  </div>
+  <div class="stat-card medium">
+    <div class="label">Minor</div>
+    <div class="value">{{ totals['policyViolations']['COMPONENT']['MINOR'] + totals['policyViolations']['LICENSE']['MINOR'] + totals['policyViolations']['SECURITY']['MINOR'] + totals['policyViolations']['OPERATIONAL']['MINOR'] + totals['policyViolations']['UNCATEGORIZED']['MINOR'] }}</div>
+  </div>
+</div>
+
+<div class="charts-section">
+  <h2>Visual Overview</h2>
+  <div class="charts-grid">
+    <div>
+      <div class="chart-title">Vulnerabilities by Severity</div>
+      <div class="chart-container">
+        <canvas id="severityChart"></canvas>
+      </div>
+    </div>
+    <div>
+      <div class="chart-title">Remediation Status Distribution</div>
+      <div class="chart-container">
+        <canvas id="remediationChart"></canvas>
+      </div>
+    </div>
+    <div>
+      <div class="chart-title">Severity by Remediation Status</div>
+      <div class="chart-container">
+        <canvas id="severityByStatusChart"></canvas>
+      </div>
+    </div>
+    <div>
+      <div class="chart-title">Policy Violations by Category</div>
+      <div class="chart-container">
+        <canvas id="policyChart"></canvas>
+      </div>
+    </div>
+    <div>
+      <div class="chart-title">Policy Violations by Severity</div>
+      <div class="chart-container">
+        <canvas id="policySeverityChart"></canvas>
+      </div>
+    </div>
+    <div>
+      <div class="chart-title">Snippet Review Status</div>
+      <div class="chart-container">
+        <canvas id="snippetChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content-section">
+<h2>Results Distribution by Triage Status</h2>
+<table id="alter">
+<tr>
+  <th>Triage Status</th>
+  <th>Critical</th>
+  <th>High</th>
+  <th>Medium</th>
+  <th>Low</th>
+  <th>None</th>
+  <th>Total</th>
+</tr>
+<tr>
+  <td><b><a href="#new">New</a></b></td>
+  <td>{{ totals['NEW']['CRITICAL'] }}</td>
+  <td>{{ totals['NEW']['HIGH'] }}</td>
+  <td>{{ totals['NEW']['MEDIUM'] }}</td>
+  <td>{{ totals['NEW']['LOW'] }}</td>
+  <td>{{ totals['NEW']['NONE'] }}</td>
+  <td>{{ totals['NEW']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#ignored">Ignored</a></b></td>
+  <td>{{ totals['IGNORED']['CRITICAL'] }}</td>
+  <td>{{ totals['IGNORED']['HIGH'] }}</td>
+  <td>{{ totals['IGNORED']['MEDIUM'] }}</td>
+  <td>{{ totals['IGNORED']['LOW'] }}</td>
+  <td>{{ totals['IGNORED']['NONE'] }}</td>
+  <td>{{ totals['IGNORED']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#dublicate">Dublicate</a></b></td>
+  <td>{{ totals['DUPLICATE']['CRITICAL'] }}</td>
+  <td>{{ totals['DUPLICATE']['HIGH'] }}</td>
+  <td>{{ totals['DUPLICATE']['MEDIUM'] }}</td>
+  <td>{{ totals['DUPLICATE']['LOW'] }}</td>
+  <td>{{ totals['DUPLICATE']['NONE'] }}</td>
+  <td>{{ totals['DUPLICATE']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#mitigated">Mitigated</a></b></td>
+  <td>{{ totals['MITIGATED']['CRITICAL'] }}</td>
+  <td>{{ totals['MITIGATED']['HIGH'] }}</td>
+  <td>{{ totals['MITIGATED']['MEDIUM'] }}</td>
+  <td>{{ totals['MITIGATED']['LOW'] }}</td>
+  <td>{{ totals['MITIGATED']['NONE'] }}</td>
+  <td>{{ totals['MITIGATED']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#needs_review">Needs Review</a></b></td>
+  <td>{{ totals['NEEDS_REVIEW']['CRITICAL'] }}</td>
+  <td>{{ totals['NEEDS_REVIEW']['HIGH'] }}</td>
+  <td>{{ totals['NEEDS_REVIEW']['MEDIUM'] }}</td>
+  <td>{{ totals['NEEDS_REVIEW']['LOW'] }}</td>
+  <td>{{ totals['NEEDS_REVIEW']['NONE'] }}</td>
+  <td>{{ totals['NEEDS_REVIEW']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#patched">Patched</a></b></td>
+  <td>{{ totals['PATCHED']['CRITICAL'] }}</td>
+  <td>{{ totals['PATCHED']['HIGH'] }}</td>
+  <td>{{ totals['PATCHED']['MEDIUM'] }}</td>
+  <td>{{ totals['PATCHED']['LOW'] }}</td>
+  <td>{{ totals['PATCHED']['NONE'] }}</td>
+  <td>{{ totals['PATCHED']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#remediation_complete">Remediation Complete</a></b></td>
+  <td>{{ totals['REMEDIATION_COMPLETE']['CRITICAL'] }}</td>
+  <td>{{ totals['REMEDIATION_COMPLETE']['HIGH'] }}</td>
+  <td>{{ totals['REMEDIATION_COMPLETE']['MEDIUM'] }}</td>
+  <td>{{ totals['REMEDIATION_COMPLETE']['LOW'] }}</td>
+  <td>{{ totals['REMEDIATION_COMPLETE']['NONE'] }}</td>
+  <td>{{ totals['REMEDIATION_COMPLETE']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#remediation_required">Remediation Required</a></b></td>
+  <td>{{ totals['REMEDIATION_REQUIRED']['CRITICAL'] }}</td>
+  <td>{{ totals['REMEDIATION_REQUIRED']['HIGH'] }}</td>
+  <td>{{ totals['REMEDIATION_REQUIRED']['MEDIUM'] }}</td>
+  <td>{{ totals['REMEDIATION_REQUIRED']['LOW'] }}</td>
+  <td>{{ totals['REMEDIATION_REQUIRED']['NONE'] }}</td>
+  <td>{{ totals['REMEDIATION_REQUIRED']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#not_affected">Not Affected</a></b></td>
+  <td>{{ totals['NOT_AFFECTED']['CRITICAL'] }}</td>
+  <td>{{ totals['NOT_AFFECTED']['HIGH'] }}</td>
+  <td>{{ totals['NOT_AFFECTED']['MEDIUM'] }}</td>
+  <td>{{ totals['NOT_AFFECTED']['LOW'] }}</td>
+  <td>{{ totals['NOT_AFFECTED']['NONE'] }}</td>
+  <td>{{ totals['NOT_AFFECTED']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#affected">Affected</a></b></td>
+  <td>{{ totals['AFFECTED']['CRITICAL'] }}</td>
+  <td>{{ totals['AFFECTED']['HIGH'] }}</td>
+  <td>{{ totals['AFFECTED']['MEDIUM'] }}</td>
+  <td>{{ totals['AFFECTED']['LOW'] }}</td>
+  <td>{{ totals['AFFECTED']['NONE'] }}</td>
+  <td>{{ totals['AFFECTED']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#under_investigation">Under Investigation</a></b></td>
+  <td>{{ totals['UNDER_INVESTIGATION']['CRITICAL'] }}</td>
+  <td>{{ totals['UNDER_INVESTIGATION']['HIGH'] }}</td>
+  <td>{{ totals['UNDER_INVESTIGATION']['MEDIUM'] }}</td>
+  <td>{{ totals['UNDER_INVESTIGATION']['LOW'] }}</td>
+  <td>{{ totals['UNDER_INVESTIGATION']['NONE'] }}</td>
+  <td>{{ totals['UNDER_INVESTIGATION']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#totals">Total Issues</a></b></td>
+  <td><b>{{ totals['NEW']['CRITICAL']+totals['IGNORED']['CRITICAL']+totals['DUPLICATE']['CRITICAL']+totals['MITIGATED']['CRITICAL']+totals['NEEDS_REVIEW']['CRITICAL']+totals['PATCHED']['CRITICAL']+totals['REMEDIATION_COMPLETE']['CRITICAL']+totals['REMEDIATION_REQUIRED']['CRITICAL']+totals['NOT_AFFECTED']['CRITICAL']+totals['AFFECTED']['CRITICAL']+totals['UNDER_INVESTIGATION']['CRITICAL']}}</b></td>
+  <td><b>{{ totals['NEW']['HIGH']+totals['IGNORED']['HIGH']+totals['DUPLICATE']['HIGH']+totals['MITIGATED']['HIGH']+totals['NEEDS_REVIEW']['HIGH']+totals['PATCHED']['HIGH']+totals['REMEDIATION_COMPLETE']['HIGH']+totals['REMEDIATION_REQUIRED']['HIGH']+totals['NOT_AFFECTED']['HIGH']+totals['AFFECTED']['HIGH']+totals['UNDER_INVESTIGATION']['HIGH']}}</b></td>
+  <td><b>{{ totals['NEW']['MEDIUM']+totals['IGNORED']['MEDIUM']+totals['DUPLICATE']['MEDIUM']+totals['MITIGATED']['MEDIUM']+totals['NEEDS_REVIEW']['MEDIUM']+totals['PATCHED']['MEDIUM']+totals['REMEDIATION_COMPLETE']['MEDIUM']+totals['REMEDIATION_REQUIRED']['MEDIUM']+totals['NOT_AFFECTED']['MEDIUM']+totals['AFFECTED']['MEDIUM']+totals['UNDER_INVESTIGATION']['MEDIUM']}}</b></td>
+  <td><b>{{ totals['NEW']['LOW']+totals['IGNORED']['LOW']+totals['DUPLICATE']['LOW']+totals['MITIGATED']['LOW']+totals['NEEDS_REVIEW']['LOW']+totals['PATCHED']['LOW']+totals['REMEDIATION_COMPLETE']['LOW']+totals['REMEDIATION_REQUIRED']['LOW']+totals['NOT_AFFECTED']['LOW']+totals['AFFECTED']['LOW']+totals['UNDER_INVESTIGATION']['LOW']}}</b></td>
+  <td><b>{{ totals['NEW']['NONE']+totals['IGNORED']['NONE']+totals['DUPLICATE']['NONE']+totals['MITIGATED']['NONE']+totals['NEEDS_REVIEW']['NONE']+totals['PATCHED']['NONE']+totals['REMEDIATION_COMPLETE']['NONE']+totals['REMEDIATION_REQUIRED']['NONE']+totals['NOT_AFFECTED']['NONE']+totals['AFFECTED']['NONE']+totals['UNDER_INVESTIGATION']['NONE']}}</b></td>
+  <td><b>{{ totals['Total'] }}</b></td>
+</tr>
+</table>
+</div>
+
+<div class="content-section">
+<h1>Total Policy violation results by category</h1>
+{% if totals['policyViolations'].empty %}
+  No Policy violations found!.
+{% else %}
+<table id="alter">
+<tr>
+  <th>Policy Category</th>
+  <th>BLOCKER</th>
+  <th>CRITICAL</th>
+  <th>MAJOR</th>
+  <th>MINOR</th>
+  <th>TRIVIAL</th>
+  <th>UNSPECIFIED</th>
+  <th>Total</th>
+</tr>
+<tr>
+  <td><b><a href="#policy_UNCATEGORIZED">UNCATEGORIZED</a></b></td>
+  <td>{{ totals['policyViolations']['UNCATEGORIZED']['BLOCKER'] }}</td>
+  <td>{{ totals['policyViolations']['UNCATEGORIZED']['CRITICAL'] }}</td>
+  <td>{{ totals['policyViolations']['UNCATEGORIZED']['MAJOR'] }}</td>
+  <td>{{ totals['policyViolations']['UNCATEGORIZED']['MINOR'] }}</td>
+  <td>{{ totals['policyViolations']['UNCATEGORIZED']['TRIVIAL'] }}</td>
+  <td>{{ totals['policyViolations']['UNCATEGORIZED']['UNSPECIFIED'] }}</td>
+  <td>{{ totals['policyViolations']['UNCATEGORIZED']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#policy_COMPONENT">COMPONENT</a></b></td>
+  <td>{{ totals['policyViolations']['COMPONENT']['BLOCKER'] }}</td>
+  <td>{{ totals['policyViolations']['COMPONENT']['CRITICAL'] }}</td>
+  <td>{{ totals['policyViolations']['COMPONENT']['MAJOR'] }}</td>
+  <td>{{ totals['policyViolations']['COMPONENT']['MINOR'] }}</td>
+  <td>{{ totals['policyViolations']['COMPONENT']['TRIVIAL'] }}</td>
+  <td>{{ totals['policyViolations']['COMPONENT']['UNSPECIFIED'] }}</td>
+  <td>{{ totals['policyViolations']['COMPONENT']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#policy_LICENSE">LICENSE</a></b></td>
+  <td>{{ totals['policyViolations']['LICENSE']['BLOCKER'] }}</td>
+  <td>{{ totals['policyViolations']['LICENSE']['CRITICAL'] }}</td>
+  <td>{{ totals['policyViolations']['LICENSE']['MAJOR'] }}</td>
+  <td>{{ totals['policyViolations']['LICENSE']['MINOR'] }}</td>
+  <td>{{ totals['policyViolations']['LICENSE']['TRIVIAL'] }}</td>
+  <td>{{ totals['policyViolations']['LICENSE']['UNSPECIFIED'] }}</td>
+  <td>{{ totals['policyViolations']['LICENSE']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#policy_OPERATIONAL">OPERATIONAL</a></b></td>
+  <td>{{ totals['policyViolations']['OPERATIONAL']['BLOCKER'] }}</td>
+  <td>{{ totals['policyViolations']['OPERATIONAL']['CRITICAL'] }}</td>
+  <td>{{ totals['policyViolations']['OPERATIONAL']['MAJOR'] }}</td>
+  <td>{{ totals['policyViolations']['OPERATIONAL']['MINOR'] }}</td>
+  <td>{{ totals['policyViolations']['OPERATIONAL']['TRIVIAL'] }}</td>
+  <td>{{ totals['policyViolations']['OPERATIONAL']['UNSPECIFIED'] }}</td>
+  <td>{{ totals['policyViolations']['OPERATIONAL']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#policy_SECURITY">SECURITY</a></b></td>
+  <td>{{ totals['policyViolations']['SECURITY']['BLOCKER'] }}</td>
+  <td>{{ totals['policyViolations']['SECURITY']['CRITICAL'] }}</td>
+  <td>{{ totals['policyViolations']['SECURITY']['MAJOR'] }}</td>
+  <td>{{ totals['policyViolations']['SECURITY']['MINOR'] }}</td>
+  <td>{{ totals['policyViolations']['SECURITY']['TRIVIAL'] }}</td>
+  <td>{{ totals['policyViolations']['SECURITY']['UNSPECIFIED'] }}</td>
+  <td>{{ totals['policyViolations']['SECURITY']['Total'] }}</td>
+</tr>
+<tr>
+  <td><b><a href="#policy_violations_by_project">Total Policy Violations</a></b></td>
+  <td><b>{{ totals['policyViolations']['UNCATEGORIZED']['BLOCKER'] + totals['policyViolations']['COMPONENT']['BLOCKER'] + totals['policyViolations']['LICENSE']['BLOCKER'] + totals['policyViolations']['OPERATIONAL']['BLOCKER'] + totals['policyViolations']['SECURITY']['BLOCKER'] }}</b></td>
+  <td><b>{{ totals['policyViolations']['UNCATEGORIZED']['CRITICAL'] + totals['policyViolations']['COMPONENT']['CRITICAL'] + totals['policyViolations']['LICENSE']['CRITICAL'] + totals['policyViolations']['OPERATIONAL']['CRITICAL'] + totals['policyViolations']['SECURITY']['CRITICAL'] }}</b></td>
+  <td><b>{{ totals['policyViolations']['UNCATEGORIZED']['MAJOR'] + totals['policyViolations']['COMPONENT']['MAJOR'] + totals['policyViolations']['LICENSE']['MAJOR'] + totals['policyViolations']['OPERATIONAL']['MAJOR'] + totals['policyViolations']['SECURITY']['MAJOR'] }}</b></td>
+  <td><b>{{ totals['policyViolations']['UNCATEGORIZED']['MINOR'] + totals['policyViolations']['COMPONENT']['MINOR'] + totals['policyViolations']['LICENSE']['MINOR'] + totals['policyViolations']['OPERATIONAL']['MINOR'] + totals['policyViolations']['SECURITY']['MINOR'] }}</b></td>
+  <td><b>{{ totals['policyViolations']['UNCATEGORIZED']['TRIVIAL'] + totals['policyViolations']['COMPONENT']['TRIVIAL'] + totals['policyViolations']['LICENSE']['TRIVIAL'] + totals['policyViolations']['OPERATIONAL']['TRIVIAL'] + totals['policyViolations']['SECURITY']['TRIVIAL'] }}</b></td>
+  <td><b>{{ totals['policyViolations']['UNCATEGORIZED']['UNSPECIFIED'] + totals['policyViolations']['COMPONENT']['UNSPECIFIED'] + totals['policyViolations']['LICENSE']['UNSPECIFIED'] + totals['policyViolations']['OPERATIONAL']['UNSPECIFIED'] + totals['policyViolations']['SECURITY']['UNSPECIFIED'] }}</b></td>
+  <td><b>{{ totals['policyViolations']['UNCATEGORIZED']['Total'] + totals['policyViolations']['COMPONENT']['Total'] + totals['policyViolations']['LICENSE']['Total'] + totals['policyViolations']['OPERATIONAL']['Total'] + totals['policyViolations']['SECURITY']['Total'] }}</b></td>
+</tr>
+{% endif %}
+</table>
+</div>
+
+<div class="content-section">
+<h1>Total Snippet results by remediation status</h1>
+{% if totals['SNIPPET']['Total'] == 0 %}
+  No snippet found!.
+{% else %}
+<table id="alter">
+<tr>
+  <th>&nbsp;</th>
+  <th>Unreviewed</th>
+  <th>Reviewed</th>
+  <th>Ignored</th>
+  <th>Total</th>
+</tr>
+<tr>
+  <td><b><a href="#snippets">Snippets</a></b></td>
+  <td>{{ totals['SNIPPET']['unreviewed'] }}</td>
+  <td>{{ totals['SNIPPET']['reviewed'] }}</td>
+  <td>{{ totals['SNIPPET']['ignored'] }}</td>
+  <td>{{ totals['SNIPPET']['Total'] }}</td>
+</tr>
+{% endif %}
+</table>
+</div>
+
+<div class="content-section">
+<h1><a name="policy_violations_by_project">Policy Violations by Project</a></h1>
+<i>Note: In front of the project name is an icon <span style='color:red'>&#9888;&nbsp;</span> if any of its version last scanned date is older than {{sinceDays}} days.</i>
+{% if totals['policyViolations']['UNCATEGORIZED']['Total'] + totals['policyViolations']['COMPONENT']['Total'] + totals['policyViolations']['LICENSE']['Total'] + totals['policyViolations']['OPERATIONAL']['Total'] + totals['policyViolations']['SECURITY']['Total'] == 0 %}
+  No policy violations found!.
+{% else %}
+  <table id="policyViolationsTable">
+    <tr>
+      <th>Project Name</th>
+      <th class="sortable" onclick="sortTable('policyViolationsTable', 1)">Blocker</th>
+      <th class="sortable" onclick="sortTable('policyViolationsTable', 2)">Critical</th>
+      <th class="sortable" onclick="sortTable('policyViolationsTable', 3)">Major</th>
+      <th class="sortable" onclick="sortTable('policyViolationsTable', 4)">Minor</th>
+      <th class="sortable" onclick="sortTable('policyViolationsTable', 5)">Trivial</th>
+      <th class="sortable" onclick="sortTable('policyViolationsTable', 6)">Unspecified</th>
+      <th class="sortable" onclick="sortTable('policyViolationsTable', 7)">Total</th>
+    </tr>
+{% for key in totals['projects'] %}
+{% set projectTotal = key['policyViolations']['UNCATEGORIZED']['Total'] + key['policyViolations']['COMPONENT']['Total'] + key['policyViolations']['LICENSE']['Total'] + key['policyViolations']['OPERATIONAL']['Total'] + key['policyViolations']['SECURITY']['Total'] %}
+{% if projectTotal > 0 %}
+      <tr>
+        {% if key['isDormant'] == True %}
+        <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        {% else %}
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        {% endif %}
+        <td>{{key['policyViolations']['UNCATEGORIZED']['BLOCKER'] + key['policyViolations']['COMPONENT']['BLOCKER'] + key['policyViolations']['LICENSE']['BLOCKER'] + key['policyViolations']['OPERATIONAL']['BLOCKER'] + key['policyViolations']['SECURITY']['BLOCKER']}}</td>
+        <td>{{key['policyViolations']['UNCATEGORIZED']['CRITICAL'] + key['policyViolations']['COMPONENT']['CRITICAL'] + key['policyViolations']['LICENSE']['CRITICAL'] + key['policyViolations']['OPERATIONAL']['CRITICAL'] + key['policyViolations']['SECURITY']['CRITICAL']}}</td>
+        <td>{{key['policyViolations']['UNCATEGORIZED']['MAJOR'] + key['policyViolations']['COMPONENT']['MAJOR'] + key['policyViolations']['LICENSE']['MAJOR'] + key['policyViolations']['OPERATIONAL']['MAJOR'] + key['policyViolations']['SECURITY']['MAJOR']}}</td>
+        <td>{{key['policyViolations']['UNCATEGORIZED']['MINOR'] + key['policyViolations']['COMPONENT']['MINOR'] + key['policyViolations']['LICENSE']['MINOR'] + key['policyViolations']['OPERATIONAL']['MINOR'] + key['policyViolations']['SECURITY']['MINOR']}}</td>
+        <td>{{key['policyViolations']['UNCATEGORIZED']['TRIVIAL'] + key['policyViolations']['COMPONENT']['TRIVIAL'] + key['policyViolations']['LICENSE']['TRIVIAL'] + key['policyViolations']['OPERATIONAL']['TRIVIAL'] + key['policyViolations']['SECURITY']['TRIVIAL']}}</td>
+        <td>{{key['policyViolations']['UNCATEGORIZED']['UNSPECIFIED'] + key['policyViolations']['COMPONENT']['UNSPECIFIED'] + key['policyViolations']['LICENSE']['UNSPECIFIED'] + key['policyViolations']['OPERATIONAL']['UNSPECIFIED'] + key['policyViolations']['SECURITY']['UNSPECIFIED']}}</td>
+        <td><b>{{projectTotal}}</b></td>
+      </tr>
+{% endif %}
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+</div>
+
+{% for category, policies in totals['policyDetails'].items() %}
+<div class="content-section">
+<h1><a name="policy_{{category}}">{{category}} Policy Violations</a></h1>
+{% if policies|length == 0 %}
+  No {{category}} policy violations found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Policy Name</th>
+      <th>Severity</th>
+      <th>Projects/Versions</th>
+    </tr>
+{% for policyName, policyData in policies.items() %}
+    <tr>
+      <td style="vertical-align: top;"><b><a href={{bdURL}}/api/policy-rules?filter=policyRuleEnabled%3Atrue&filter=policyRuleEnabled%3Afalse&limit=100&offset=0>{{policyName}}</a></b><br><i>Total Violations: {{policyData['totalCount']}}</i></td>
+      <td style="vertical-align: top;">{{policyData['severity']}}</td>
+      <td>
+        <table>
+          <tr>
+            <th>Project Name</th>
+            <th>Version Details</th>
+          </tr>
+{% for projectId, projectData in policyData['projects'].items() %}
+          <tr>
+            <td><b><a href={{bdURL}}/api/projects/{{projectData['projectID']}}>{{projectData['projectName']}}</a></b></td>
+            <td>
+              <table>
+                <tr>
+                  <th>Version Name</th>
+                  <th>Phase</th>
+                  <th>Distribution</th>
+                  <th>Last Scanned</th>
+                  <th>Violations</th>
+                </tr>
+{% for version in projectData['versions'] %}
+                <tr>
+                  {% if version['isDormant'] == True %}
+                  <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{projectData['projectID']}}/versions/{{version['versionID']}}/components>{{version['versionName']}}</a></b></td>
+                  {% else %}
+                  <td><b><a href={{bdURL}}/api/projects/{{projectData['projectID']}}/versions/{{version['versionID']}}/components>{{version['versionName']}}</a></b></td>
+                  {% endif %}
+                  <td>{{version['phase']}}</td>
+                  <td>{{version['distribution']}}</td>
+                  <td>{{version['lastScanDate']}}</td>
+                  <td>{{version['violationCount']}}</td>
+                </tr>
+{% endfor %}
+              </table>
+            </td>
+          </tr>
+{% endfor %}
+        </table>
+      </td>
+    </tr>
+{% endfor %}
+  </table>
+  <br>
+{% endif %}
+</div>
+{% endfor %}
+
+<div class="content-section">
+<h1><a name="snippets">Snippets by Project/versions</a></h1>
+{% if totals['SNIPPET']['Total'] == 0 %}
+  No snippets found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+{% if key['SNIPPET']['Total'] > 0 %}
+<tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Unreviewed</th>
+              <th>Reviewed</th>
+              <th>Ignored</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/components?filter=bomInclusion=false&filter=bomMatchInclusion=false&filter=bomMatchReviewStatus=reviewed&limit=100&offset=100>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/components?filter=bomInclusion=false&filter=bomMatchInclusion=false&filter=bomMatchReviewStatus=reviewed&limit=100&offset=100>{{key2['versionName']}}</a></b>
+                {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['snippets']['unreviewed']}}</td>
+              <td>{{key2['snippets']['reviewed']}}</td>
+              <td>{{key2['snippets']['ignored']}}</td>
+              <td><b>{{key2['snippets']['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key['SNIPPET']['unreviewed']}}</td>
+              <td>{{key['SNIPPET']['reviewed']}}</td>
+              <td>{{key['SNIPPET']['ignored']}}</td>
+              <td><b>{{key['SNIPPET']['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+  {% endif %}
+  {% endfor %}
+  </table>
+  <br>
+{% endif %}
+</div>
+
+<div class="content-section">
+<h1><a name="totals">Total Issues by Project</a></h1>
+<i>Note: In front of the project name is an icon <span style='color:red'>&#9888;&nbsp;</span> if the any of its version last scanned date is older than {{sinceDays}} days.
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="totalIssuesTable">
+    <tr>
+      <th>Project Name</th>
+      <th class="sortable" onclick="sortTable('totalIssuesTable', 1)">Critical</th>
+      <th class="sortable" onclick="sortTable('totalIssuesTable', 2)">High</th>
+      <th class="sortable" onclick="sortTable('totalIssuesTable', 3)">Medium</th>
+      <th class="sortable" onclick="sortTable('totalIssuesTable', 4)">Low</th>
+      <th class="sortable" onclick="sortTable('totalIssuesTable', 5)">None</th>
+      <th class="sortable" onclick="sortTable('totalIssuesTable', 6)">Total</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        {% if key['isDormant'] == True %}
+        <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        {% else %}
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        {% endif %}
+        <td>{{key["NEW"]['CRITICAL']+key["IGNORED"]['CRITICAL']+key["DUPLICATE"]['CRITICAL']+key["MITIGATED"]['CRITICAL']+key["NEEDS_REVIEW"]['CRITICAL']+key["PATCHED"]['CRITICAL']+key["REMEDIATION_COMPLETE"]['CRITICAL']+key["REMEDIATION_REQUIRED"]['CRITICAL']+key["NOT_AFFECTED"]['CRITICAL']+key["AFFECTED"]['CRITICAL']+key["UNDER_INVESTIGATION"]['CRITICAL']}}</td>
+        <td>{{key["NEW"]['HIGH']+key["IGNORED"]['HIGH']+key["DUPLICATE"]['HIGH']+key["MITIGATED"]['HIGH']+key["NEEDS_REVIEW"]['HIGH']+key["PATCHED"]['HIGH']+key["REMEDIATION_COMPLETE"]['HIGH']+key["REMEDIATION_REQUIRED"]['HIGH']+key["NOT_AFFECTED"]['HIGH']+key["AFFECTED"]['CRITICAL']+key["UNDER_INVESTIGATION"]['CRITICAL']}}</td>
+        <td>{{key["NEW"]['MEDIUM']+key["IGNORED"]['MEDIUM']+key["DUPLICATE"]['MEDIUM']+key["MITIGATED"]['MEDIUM']+key["NEEDS_REVIEW"]['MEDIUM']+key["PATCHED"]['MEDIUM']+key["REMEDIATION_COMPLETE"]['MEDIUM']+key["REMEDIATION_REQUIRED"]['MEDIUM']+key["NOT_AFFECTED"]['MEDIUM']+key["AFFECTED"]['MEDIUM']+key["UNDER_INVESTIGATION"]['MEDIUM']}}</td>
+        <td>{{key["NEW"]['LOW']+key["IGNORED"]['LOW']+key["DUPLICATE"]['LOW']+key["MITIGATED"]['LOW']+key["NEEDS_REVIEW"]['LOW']+key["PATCHED"]['LOW']+key["REMEDIATION_COMPLETE"]['LOW']+key["REMEDIATION_REQUIRED"]['LOW']+key["NOT_AFFECTED"]['LOW']+key["AFFECTED"]['LOW']+key["UNDER_INVESTIGATION"]['LOW']}}</td>
+        <td>{{key["NEW"]['NONE']+key["IGNORED"]['NONE']+key["DUPLICATE"]['NONE']+key["MITIGATED"]['NONE']+key["NEEDS_REVIEW"]['NONE']+key["PATCHED"]['NONE']+key["REMEDIATION_COMPLETE"]['NONE']+key["REMEDIATION_REQUIRED"]['NONE']+key["NOT_AFFECTED"]['NONE']+key["AFFECTED"]['NONE']+key["UNDER_INVESTIGATION"]['NONE']}}</td>
+        <td><b>{{key["NEW"]['Total']+key["IGNORED"]['Total']+key["DUPLICATE"]['Total']+key["MITIGATED"]['Total']+key["NEEDS_REVIEW"]['Total']+key["PATCHED"]['Total']+key["REMEDIATION_COMPLETE"]['Total']+key["REMEDIATION_REQUIRED"]['Total']+key["NOT_AFFECTED"]['Total']+key["AFFECTED"]['Total']+key["UNDER_INVESTIGATION"]['Total']}}</b></td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+</div>
+
+<div class="content-section">
+<h1><a name="new">New Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["NEW"]['CRITICAL']}}</td>
+              <td>{{key["NEW"]['HIGH']}}</td>
+              <td>{{key["NEW"]['MEDIUM']}}</td>
+              <td>{{key["NEW"]['LOW']}}</td>
+              <td>{{key["NEW"]['NONE']}}</td>
+              <td><b>{{key["NEW"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+<h1><a name="ignored">Ignored Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["IGNORED"]['CRITICAL']}}</td>
+              <td>{{key["IGNORED"]['HIGH']}}</td>
+              <td>{{key["IGNORED"]['MEDIUM']}}</td>
+              <td>{{key["IGNORED"]['LOW']}}</td>
+              <td>{{key["IGNORED"]['NONE']}}</td>
+              <td><b>{{key["IGNORED"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+<h1><a name="dublicate">Dublicate Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["DUPLICATE"]['CRITICAL']}}</td>
+              <td>{{key["DUPLICATE"]['HIGH']}}</td>
+              <td>{{key["DUPLICATE"]['MEDIUM']}}</td>
+              <td>{{key["DUPLICATE"]['LOW']}}</td>
+              <td>{{key["DUPLICATE"]['NONE']}}</td>
+              <td><b>{{key["DUPLICATE"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+<h1><a name="mitigated">Mitigated Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["MITIGATED"]['CRITICAL']}}</td>
+              <td>{{key["MITIGATED"]['HIGH']}}</td>
+              <td>{{key["MITIGATED"]['MEDIUM']}}</td>
+              <td>{{key["MITIGATED"]['LOW']}}</td>
+              <td>{{key["MITIGATED"]['NONE']}}</td>
+              <td><b>{{key["MITIGATED"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+<h1><a name="needs_review">Needs Review Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["NEEDS_REVIEW"]['CRITICAL']}}</td>
+              <td>{{key["NEEDS_REVIEW"]['HIGH']}}</td>
+              <td>{{key["NEEDS_REVIEW"]['MEDIUM']}}</td>
+              <td>{{key["NEEDS_REVIEW"]['LOW']}}</td>
+              <td>{{key["NEEDS_REVIEW"]['NONE']}}</td>
+              <td><b>{{key["NEEDS_REVIEW"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+<h1><a name="patched">Patched Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["PATCHED"]['CRITICAL']}}</td>
+              <td>{{key["PATCHED"]['HIGH']}}</td>
+              <td>{{key["PATCHED"]['MEDIUM']}}</td>
+              <td>{{key["PATCHED"]['LOW']}}</td>
+              <td>{{key["PATCHED"]['NONE']}}</td>
+              <td><b>{{key["PATCHED"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+<h1><a name="remediation_complete">Remediation Complete Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["REMEDIATION_COMPLETE"]['CRITICAL']}}</td>
+              <td>{{key["REMEDIATION_COMPLETE"]['HIGH']}}</td>
+              <td>{{key["REMEDIATION_COMPLETE"]['MEDIUM']}}</td>
+              <td>{{key["REMEDIATION_COMPLETE"]['LOW']}}</td>
+              <td>{{key["REMEDIATION_COMPLETE"]['NONE']}}</td>
+              <td><b>{{key["REMEDIATION_COMPLETE"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+{% endif %}
+<h1><a name="remediation_required">Remediation Required Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["REMEDIATION_REQUIRED"]['CRITICAL']}}</td>
+              <td>{{key["REMEDIATION_REQUIRED"]['HIGH']}}</td>
+              <td>{{key["REMEDIATION_REQUIRED"]['MEDIUM']}}</td>
+              <td>{{key["REMEDIATION_REQUIRED"]['LOW']}}</td>
+              <td>{{key["REMEDIATION_REQUIRED"]['NONE']}}</td>
+              <td><b>{{key["REMEDIATION_REQUIRED"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+  {% endif %}
+<h1><a name="not_affected">Not affected Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["NOT_AFFECTED"]['CRITICAL']}}</td>
+              <td>{{key["NOT_AFFECTED"]['HIGH']}}</td>
+              <td>{{key["NOT_AFFECTED"]['MEDIUM']}}</td>
+              <td>{{key["NOT_AFFECTED"]['LOW']}}</td>
+              <td>{{key["NOT_AFFECTED"]['NONE']}}</td>
+              <td><b>{{key["NOT_AFFECTED"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  <br>
+<h1><a name="affected">Affected Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["AFFECTED"]['CRITICAL']}}</td>
+              <td>{{key["AFFECTED"]['HIGH']}}</td>
+              <td>{{key["AFFECTED"]['MEDIUM']}}</td>
+              <td>{{key["AFFECTED"]['LOW']}}</td>
+              <td>{{key["AFFECTED"]['NONE']}}</td>
+              <td><b>{{key["AFFECTED"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  <br>
+<h1><a name="under_investigation">Under Investigation Issues by Project/versions</a></h1>
+{% if totals['projects'].empty %}
+  No projects found!.
+{% else %}
+  <table id="alter">
+    <tr>
+      <th>Project Name</th>
+      <th>Versions</th>
+    </tr>
+{% for key in totals['projects'] %}
+      <tr>
+        <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
+        <td>
+          <table>
+            <tr>
+              <th>Version Name</th>
+              <th>Critical</th>
+              <th>High</th>
+              <th>Medium</th>
+              <th>Low</th>
+              <th>None</th>
+              <th>Total</th>
+            </tr>
+            {% for key2 in key['projectVersionLevelCounts'] %}
+            <tr>
+              {% if key2['isDormant'] == True %}
+              <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% else %}
+              <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
+              {% endif %}
+              <br><i>Phase: {{key2['phase']}}</i>
+              <br><i>Distribution: {{key2['distribution']}}</i>
+              <br><i>Last Scanned: {{key2['lastScanDate']}}</i>
+              </td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['CRITICAL']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['HIGH']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['MEDIUM']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['LOW']}}</td>
+              <td>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['NONE']}}</td>
+              <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['Total']}}</b></td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td><b>Totals</b></td>
+              <td>{{key["UNDER_INVESTIGATION"]['CRITICAL']}}</td>
+              <td>{{key["UNDER_INVESTIGATION"]['HIGH']}}</td>
+              <td>{{key["UNDER_INVESTIGATION"]['MEDIUM']}}</td>
+              <td>{{key["UNDER_INVESTIGATION"]['LOW']}}</td>
+              <td>{{key["UNDER_INVESTIGATION"]['NONE']}}</td>
+              <td><b>{{key["UNDER_INVESTIGATION"]['Total']}}</b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+<script>
+// Chart.js configuration
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+Chart.defaults.color = '#4a5568';
+
+// Severity Pie Chart
+const severityCtx = document.getElementById('severityChart');
+new Chart(severityCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Critical', 'High', 'Medium', 'Low'],
+        datasets: [{
+            data: [
+                {{ totals['NEW']['CRITICAL']+totals['IGNORED']['CRITICAL']+totals['DUPLICATE']['CRITICAL']+totals['MITIGATED']['CRITICAL']+totals['NEEDS_REVIEW']['CRITICAL']+totals['PATCHED']['CRITICAL']+totals['REMEDIATION_COMPLETE']['CRITICAL']+totals['REMEDIATION_REQUIRED']['CRITICAL']+totals['NOT_AFFECTED']['CRITICAL']+totals['AFFECTED']['CRITICAL']+totals['UNDER_INVESTIGATION']['CRITICAL']}},
+                {{ totals['NEW']['HIGH']+totals['IGNORED']['HIGH']+totals['DUPLICATE']['HIGH']+totals['MITIGATED']['HIGH']+totals['NEEDS_REVIEW']['HIGH']+totals['PATCHED']['HIGH']+totals['REMEDIATION_COMPLETE']['HIGH']+totals['REMEDIATION_REQUIRED']['HIGH']+totals['NOT_AFFECTED']['HIGH']+totals['AFFECTED']['HIGH']+totals['UNDER_INVESTIGATION']['HIGH']}},
+                {{ totals['NEW']['MEDIUM']+totals['IGNORED']['MEDIUM']+totals['DUPLICATE']['MEDIUM']+totals['MITIGATED']['MEDIUM']+totals['NEEDS_REVIEW']['MEDIUM']+totals['PATCHED']['MEDIUM']+totals['REMEDIATION_COMPLETE']['MEDIUM']+totals['REMEDIATION_REQUIRED']['MEDIUM']+totals['NOT_AFFECTED']['MEDIUM']+totals['AFFECTED']['MEDIUM']+totals['UNDER_INVESTIGATION']['MEDIUM']}},
+                {{ totals['NEW']['LOW']+totals['IGNORED']['LOW']+totals['DUPLICATE']['LOW']+totals['MITIGATED']['LOW']+totals['NEEDS_REVIEW']['LOW']+totals['PATCHED']['LOW']+totals['REMEDIATION_COMPLETE']['LOW']+totals['REMEDIATION_REQUIRED']['LOW']+totals['NOT_AFFECTED']['LOW']+totals['AFFECTED']['LOW']+totals['UNDER_INVESTIGATION']['LOW']}}
+            ],
+            backgroundColor: ['#e53e3e', '#dd6b20', '#d69e2e', '#38a169'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 15, font: { size: 12 } }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Remediation Status Bar Chart
+const remediationCtx = document.getElementById('remediationChart');
+const remediationData = {
+    'NEW': {{ totals['NEW']['Total'] }},
+    'IGNORED': {{ totals['IGNORED']['Total'] }},
+    'NEEDS REVIEW': {{ totals['NEEDS_REVIEW']['Total'] }},
+    'PATCHED': {{ totals['PATCHED']['Total'] }},
+    'MITIGATED': {{ totals['MITIGATED']['Total'] }},
+    'DUPLICATE': {{ totals['DUPLICATE']['Total'] }},
+    'REMEDIATION REQUIRED': {{ totals['REMEDIATION_REQUIRED']['Total'] }},
+    'REMEDIATION COMPLETE': {{ totals['REMEDIATION_COMPLETE']['Total'] }},
+    'NOT AFFECTED': {{ totals['NOT_AFFECTED']['Total'] }},
+    'AFFECTED': {{ totals['AFFECTED']['Total'] }},
+    'UNDER INVESTIGATION': {{ totals['UNDER_INVESTIGATION']['Total'] }}
+};
+const remediationFiltered = Object.entries(remediationData).filter(([k, v]) => v > 0);
+
+new Chart(remediationCtx, {
+    type: 'bar',
+    data: {
+        labels: remediationFiltered.map(([k]) => k),
+        datasets: [{
+            label: 'Count',
+            data: remediationFiltered.map(([k, v]) => v),
+            backgroundColor: '#3182ce',
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+            }
+        }
+    }
+});
+
+// Severity by Status Stacked Bar Chart
+const severityByStatusCtx = document.getElementById('severityByStatusChart');
+const statuses = ['NEW', 'IGNORED', 'NEEDS_REVIEW', 'PATCHED', 'MITIGATED'];
+const statusLabels = ['New', 'Ignored', 'Needs Review', 'Patched', 'Mitigated'];
+
+new Chart(severityByStatusCtx, {
+    type: 'bar',
+    data: {
+        labels: statusLabels,
+        datasets: [
+            {
+                label: 'Critical',
+                data: [{{ totals['NEW']['CRITICAL'] }}, {{ totals['IGNORED']['CRITICAL'] }}, {{ totals['NEEDS_REVIEW']['CRITICAL'] }}, {{ totals['PATCHED']['CRITICAL'] }}, {{ totals['MITIGATED']['CRITICAL'] }}],
+                backgroundColor: '#e53e3e'
+            },
+            {
+                label: 'High',
+                data: [{{ totals['NEW']['HIGH'] }}, {{ totals['IGNORED']['HIGH'] }}, {{ totals['NEEDS_REVIEW']['HIGH'] }}, {{ totals['PATCHED']['HIGH'] }}, {{ totals['MITIGATED']['HIGH'] }}],
+                backgroundColor: '#dd6b20'
+            },
+            {
+                label: 'Medium',
+                data: [{{ totals['NEW']['MEDIUM'] }}, {{ totals['IGNORED']['MEDIUM'] }}, {{ totals['NEEDS_REVIEW']['MEDIUM'] }}, {{ totals['PATCHED']['MEDIUM'] }}, {{ totals['MITIGATED']['MEDIUM'] }}],
+                backgroundColor: '#d69e2e'
+            },
+            {
+                label: 'Low',
+                data: [{{ totals['NEW']['LOW'] }}, {{ totals['IGNORED']['LOW'] }}, {{ totals['NEEDS_REVIEW']['LOW'] }}, {{ totals['PATCHED']['LOW'] }}, {{ totals['MITIGATED']['LOW'] }}],
+                backgroundColor: '#38a169'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 15 }
+            }
+        },
+        scales: {
+            x: { stacked: true },
+            y: { 
+                stacked: true,
+                beginAtZero: true,
+                ticks: { precision: 0 }
+            }
+        }
+    }
+});
+
+// Policy Violations Chart
+const policyCtx = document.getElementById('policyChart');
+const policyTypes = ['UNCATEGORIZED', 'COMPONENT', 'LICENSE', 'SECURITY', 'OPERATIONAL'];
+const policyLabels = ['Uncategorized', 'Component', 'License', 'Security', 'Operational'];
+const policySeverities = ['BLOCKER', 'CRITICAL', 'MAJOR', 'MINOR', 'TRIVIAL', 'UNSPECIFIED'];
+const policyColors = ['#742a2a', '#e53e3e', '#dd6b20', '#d69e2e', '#718096', '#a0aec0'];
+
+// Policy breakdown data for tooltip (all categories)
+const policyBreakdown = {{ totals.get('policyBreakdown', {}) | tojson }};
+// Policy details with severity information
+const policyDetails = {{ totals.get('policyDetails', {}) | tojson }};
+
+new Chart(policyCtx, {
+    type: 'bar',
+    data: {
+        labels: policyLabels,
+        datasets: [
+            {
+                label: 'Blocker',
+                data: [{{ totals['policyViolations']['UNCATEGORIZED']['BLOCKER'] }}, {{ totals['policyViolations']['COMPONENT']['BLOCKER'] }}, {{ totals['policyViolations']['LICENSE']['BLOCKER'] }}, {{ totals['policyViolations']['SECURITY']['BLOCKER'] }}, {{ totals['policyViolations']['OPERATIONAL']['BLOCKER'] }}],
+                backgroundColor: policyColors[0]
+            },
+            {
+                label: 'Critical',
+                data: [{{ totals['policyViolations']['UNCATEGORIZED']['CRITICAL'] }}, {{ totals['policyViolations']['COMPONENT']['CRITICAL'] }}, {{ totals['policyViolations']['LICENSE']['CRITICAL'] }}, {{ totals['policyViolations']['SECURITY']['CRITICAL'] }}, {{ totals['policyViolations']['OPERATIONAL']['CRITICAL'] }}],
+                backgroundColor: policyColors[1]
+            },
+            {
+                label: 'Major',
+                data: [{{ totals['policyViolations']['UNCATEGORIZED']['MAJOR'] }}, {{ totals['policyViolations']['COMPONENT']['MAJOR'] }}, {{ totals['policyViolations']['LICENSE']['MAJOR'] }}, {{ totals['policyViolations']['SECURITY']['MAJOR'] }}, {{ totals['policyViolations']['OPERATIONAL']['MAJOR'] }}],
+                backgroundColor: policyColors[2]
+            },
+            {
+                label: 'Minor',
+                data: [{{ totals['policyViolations']['UNCATEGORIZED']['MINOR'] }}, {{ totals['policyViolations']['COMPONENT']['MINOR'] }}, {{ totals['policyViolations']['LICENSE']['MINOR'] }}, {{ totals['policyViolations']['SECURITY']['MINOR'] }}, {{ totals['policyViolations']['OPERATIONAL']['MINOR'] }}],
+                backgroundColor: policyColors[3]
+            },
+            {
+                label: 'Trivial',
+                data: [{{ totals['policyViolations']['UNCATEGORIZED']['TRIVIAL'] }}, {{ totals['policyViolations']['COMPONENT']['TRIVIAL'] }}, {{ totals['policyViolations']['LICENSE']['TRIVIAL'] }}, {{ totals['policyViolations']['SECURITY']['TRIVIAL'] }}, {{ totals['policyViolations']['OPERATIONAL']['TRIVIAL'] }}],
+                backgroundColor: policyColors[4]
+            },
+            {
+                label: 'Unspecified',
+                data: [{{ totals['policyViolations']['UNCATEGORIZED']['UNSPECIFIED'] }}, {{ totals['policyViolations']['COMPONENT']['UNSPECIFIED'] }}, {{ totals['policyViolations']['LICENSE']['UNSPECIFIED'] }}, {{ totals['policyViolations']['SECURITY']['UNSPECIFIED'] }}, {{ totals['policyViolations']['OPERATIONAL']['UNSPECIFIED'] }}],
+                backgroundColor: policyColors[5]
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 15 }
+            },
+            tooltip: {
+                callbacks: {
+                    afterLabel: function(context) {
+                        // Map label to category
+                        const categoryMap = {
+                            'Uncategorized': 'UNCATEGORIZED',
+                            'Component': 'COMPONENT',
+                            'License': 'LICENSE',
+                            'Security': 'SECURITY',
+                            'Operational': 'OPERATIONAL'
+                        };
+                        const category = categoryMap[context.label];
+                        const severityIndex = context.datasetIndex;
+                        const severity = policySeverities[severityIndex]; // Get the hovered severity
+                        
+                        // Show policy breakdown for this category filtered by severity
+                        if (category && policyDetails[category] && Object.keys(policyDetails[category]).length > 0) {
+                            let details = '\n\nPolicy Details (' + severity + '):';
+                            let foundPolicies = false;
+                            
+                            // Filter policies by matching severity
+                            const filteredPolicies = [];
+                            for (const [policyName, policyData] of Object.entries(policyDetails[category])) {
+                                if (policyData.severity === severity) {
+                                    filteredPolicies.push([policyName, policyData.totalCount]);
+                                }
+                            }
+                            
+                            // Sort by count (descending)
+                            filteredPolicies.sort((a, b) => b[1] - a[1]);
+                            
+                            for (const [policy, count] of filteredPolicies) {
+                                details += '\n  • ' + policy + ': ' + count;
+                                foundPolicies = true;
+                            }
+                            
+                            return foundPolicies ? details : '';
+                        }
+                        return '';
+                    }
+                }
+            }
+        },
+        scales: {
+            x: { stacked: true },
+            y: { 
+                stacked: true,
+                beginAtZero: true,
+                ticks: { precision: 0 }
+            }
+        }
+    }
+});
+
+// Policy Violations by Policy Name Chart (Horizontal bar chart)
+const policySeverityCtx = document.getElementById('policySeverityChart');
+
+// Collect all policies with their counts and metadata
+const allPolicies = [];
+for (const category of policyTypes) {
+    if (policyDetails[category]) {
+        for (const [policyName, policyData] of Object.entries(policyDetails[category])) {
+            allPolicies.push({
+                name: policyName,
+                count: policyData.totalCount,
+                severity: policyData.severity,
+                category: category
+            });
+        }
+    }
+}
+
+// Sort by count descending and take top policies (limit to avoid overcrowding)
+allPolicies.sort((a, b) => b.count - a.count);
+const topPolicies = allPolicies.slice(0, 20); // Show top 20 policies
+
+const policyNames = topPolicies.map(p => p.name);
+const policyCounts = topPolicies.map(p => p.count);
+const policyChartColors = topPolicies.map(p => {
+    const severityIndex = policySeverities.indexOf(p.severity);
+    return policyColors[severityIndex] || '#718096';
+});
+
+new Chart(policySeverityCtx, {
+    type: 'bar',
+    data: {
+        labels: policyNames,
+        datasets: [{
+            label: 'Policy Violations',
+            data: policyCounts,
+            backgroundColor: policyChartColors,
+            borderWidth: 1,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        indexAxis: 'y', // This makes the bar chart horizontal
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    afterLabel: function(context) {
+                        const policy = topPolicies[context.dataIndex];
+                        const categoryLabel = policyLabels[policyTypes.indexOf(policy.category)];
+                        
+                        let details = '\n\nSeverity: ' + policy.severity;
+                        details += '\nCategory: ' + categoryLabel;
+                        
+                        // Show project/version breakdown
+                        if (policyDetails[policy.category] && policyDetails[policy.category][policy.name]) {
+                            const projectData = policyDetails[policy.category][policy.name].projects;
+                            const projectCount = Object.keys(projectData).length;
+                            let versionCount = 0;
+                            for (const proj of Object.values(projectData)) {
+                                versionCount += proj.versions.length;
+                            }
+                            details += '\n\nAffects:';
+                            details += '\n  • ' + projectCount + ' project(s)';
+                            details += '\n  • ' + versionCount + ' version(s)';
+                        }
+                        
+                        return details;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: { 
+                beginAtZero: true,
+                ticks: { precision: 0 },
+                title: {
+                    display: true,
+                    text: 'Violation Count'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Policy Name'
+                },
+                ticks: {
+                    autoSkip: false
+                }
+            }
+        }
+    }
+});
+
+// Snippet Status Pie Chart
+const snippetCtx = document.getElementById('snippetChart');
+const snippetTotal = {{ totals['SNIPPET']['Total'] }};
+if (snippetTotal > 0) {
+    new Chart(snippetCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Unreviewed', 'Reviewed', 'Ignored'],
+            datasets: [{
+                data: [
+                    {{ totals['SNIPPET']['unreviewed'] }},
+                    {{ totals['SNIPPET']['reviewed'] }},
+                    {{ totals['SNIPPET']['ignored'] }}
+                ],
+                backgroundColor: [
+                    '#dd6b20',  // Orange for unreviewed
+                    '#38a169',  // Green for reviewed
+                    '#718096'   // Gray for ignored
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+} else {
+    // Display message when no snippets found
+    snippetCtx.parentElement.innerHTML = '<p style="text-align: center; color: #718096; padding: 20px;">No snippets found</p>';
+}
+
+// Table sorting function
+function sortTable(tableId, columnIndex) {
+    const table = document.getElementById(tableId);
+    const tbody = table.querySelector('tbody') || table;
+    const rows = Array.from(tbody.querySelectorAll('tr')).slice(1); // Skip header row
+    const header = table.querySelectorAll('th')[columnIndex];
+    const allHeaders = table.querySelectorAll('th.sortable');
+    
+    // Determine sort direction
+    let isAscending = !header.classList.contains('asc');
+    
+    // Remove sort classes from all headers
+    allHeaders.forEach(h => {
+        h.classList.remove('asc', 'desc');
+    });
+    
+    // Add appropriate class to current header
+    header.classList.add(isAscending ? 'asc' : 'desc');
+    
+    // Sort rows
+    rows.sort((a, b) => {
+        const aValue = a.cells[columnIndex].textContent.trim();
+        const bValue = b.cells[columnIndex].textContent.trim();
+        
+        // Parse as numbers for numeric columns
+        const aNum = parseInt(aValue.replace(/[^0-9]/g, '')) || 0;
+        const bNum = parseInt(bValue.replace(/[^0-9]/g, '')) || 0;
+        
+        if (isAscending) {
+            return aNum - bNum;
+        } else {
+            return bNum - aNum;
+        }
+    });
+    
+    // Re-append sorted rows
+    rows.forEach(row => tbody.appendChild(row));
+}
+</script>
+</body>
+</HTML>

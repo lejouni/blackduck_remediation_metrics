@@ -100,7 +100,7 @@ except ImportError:
 
 
 __author__ = "Jouni Lehto"
-__version__ = "0.1.20"
+__version__ = "0.1.21"
 
 #Global variables
 args = "" 
