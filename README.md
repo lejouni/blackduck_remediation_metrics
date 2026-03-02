@@ -171,6 +171,7 @@ bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --dir="./reports" --html --
 |-----------|-------------|---------|| `-v`, `--version` | Display version information and exit | N/A || `--dir` | Output directory for generated reports | `.` (current directory) |
 | `--log_level` | Logging level for console output | `INFO` |
 | `--sinceDays` | Number of days to mark project versions as dormant (shows warning icon) | `30` |
+| `--show-empty` | Show project/version rows with all-zero counts in the triage status HTML report (hidden by default) | Disabled |
 
 ### Environment Variables
 
@@ -233,6 +234,7 @@ blackduck-remediation-metrics/
 
 ## Version History
 
+- 0.1.21 - Added `--show-empty` flag for triage report, version-level zero filtering, sortable dashboard table, hide-empty-rows toggle in dashboard
 - 0.1.20 - Added -v/--version flag, renamed parameters to --project-version and --project-group for consistency
 - 0.1.19 - Added comprehensive command-line parameter documentation to README
 - 0.1.18 - Fixed pyproject.toml license configuration for PEP 639 compliance

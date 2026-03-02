@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.21] - 2026-03-02
+
+### Added
+- `--show-empty` CLI flag for the triage status HTML report — by default project and version rows with all-zero counts are hidden; pass `--show-empty` to include them
+- Version-level zero filtering in the triage report: individual version rows are also hidden when their count for that specific status is 0
+- Sortable column headers in the dashboard **Project Details** table — click any column header to sort ascending/descending (▲/▼ indicator shown)
+- **Hide rows with no data** toggle checkbox in the dashboard Project Details table — checked by default to hide projects with no vulnerabilities or policy violations
+
+### Changed
+- Dashboard **Project Details** table now shows only NEW vulnerability counts; a **Managed** column (Total minus NEW) summarises triaged findings
+- **Last Scanning** column in the dashboard shows the most recent scan date across all versions of a project
+- Report templates and Python script installed in editable mode so template changes apply immediately without reinstalling
+
 ## [0.1.20] - 2026-02-17
 
 ### Added

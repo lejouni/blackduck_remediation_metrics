@@ -115,6 +115,51 @@
             color: #4a5568;
             border-bottom: 2px solid #e2e8f0;
         }
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        th.sortable:hover {
+            background: #edf2f7;
+        }
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.35;
+            font-size: 11px;
+        }
+        th.sortable.sort-asc::after {
+            content: ' ▲';
+            opacity: 1;
+        }
+        th.sortable.sort-desc::after {
+            content: ' ▼';
+            opacity: 1;
+        }
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .table-toolbar h2 {
+            margin: 0;
+        }
+        .toggle-empty {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #4a5568;
+            cursor: pointer;
+            user-select: none;
+        }
+        .toggle-empty input[type=checkbox] {
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+        }
+        tr.empty-row { display: none; }
+        tr.empty-row.show-empty { display: table-row; }
         td {
             padding: 12px;
             border-bottom: 1px solid #e2e8f0;
@@ -176,24 +221,24 @@
 
         <div class="stats-grid">
             <div class="stat-card total">
-                <div class="label">Total Vulnerabilities</div>
-                <div class="value">{{ data.Total }}</div>
+                <div class="label">New Vulnerabilities</div>
+                <div class="value">{{ data.NEW.Total }}</div>
             </div>
             <div class="stat-card critical">
                 <div class="label">Critical</div>
-                <div class="value">{{ data.NEW.CRITICAL + data.IGNORED.CRITICAL }}</div>
+                <div class="value">{{ data.NEW.CRITICAL }}</div>
             </div>
             <div class="stat-card high">
                 <div class="label">High</div>
-                <div class="value">{{ data.NEW.HIGH + data.IGNORED.HIGH }}</div>
+                <div class="value">{{ data.NEW.HIGH }}</div>
             </div>
             <div class="stat-card medium">
                 <div class="label">Medium</div>
-                <div class="value">{{ data.NEW.MEDIUM + data.IGNORED.MEDIUM }}</div>
+                <div class="value">{{ data.NEW.MEDIUM }}</div>
             </div>
             <div class="stat-card low">
                 <div class="label">Low</div>
-                <div class="value">{{ data.NEW.LOW + data.IGNORED.LOW }}</div>
+                <div class="value">{{ data.NEW.LOW }}</div>
             </div>
         </div>
 
@@ -265,61 +310,76 @@
         </div>
 
         <div class="projects-table">
-            <h2>Project Details</h2>
-            <table>
+            <div class="table-toolbar">
+                <h2>Project Details</h2>
+                <label class="toggle-empty">
+                    <input type="checkbox" id="hideEmptyRows" checked onchange="toggleEmptyRows()">
+                    Hide rows with no data
+                </label>
+            </div>
+            <table id="projectsTable">
                 <thead>
                     <tr>
-                        <th>Project Name</th>
-                        <th>Total Vulns</th>
-                        <th>Critical</th>
-                        <th>High</th>
-                        <th>Medium</th>
-                        <th>Low</th>
-                        <th>Policy Violations</th>
-                        <th>Last Updated</th>
+                        <th class="sortable" onclick="sortProjectsTable(0, false)">Project Name</th>
+                        <th class="sortable" onclick="sortProjectsTable(1, true)">New Vulns</th>
+                        <th class="sortable" onclick="sortProjectsTable(2, true)">Critical</th>
+                        <th class="sortable" onclick="sortProjectsTable(3, true)">High</th>
+                        <th class="sortable" onclick="sortProjectsTable(4, true)">Medium</th>
+                        <th class="sortable" onclick="sortProjectsTable(5, true)">Low</th>
+                        <th class="sortable" onclick="sortProjectsTable(6, true)">Managed</th>
+                        <th class="sortable" onclick="sortProjectsTable(7, true)">Policy Violations</th>
+                        <th class="sortable" onclick="sortProjectsTable(8, false)">Last Scanning</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% set sorted_projects = data.projects | sort(attribute='Total', reverse=True) %}
                     {% for project in sorted_projects %}
-                    <tr>
+                    <tr data-total="{{ project.Total + project.policyViolations.COMPONENT.Total + project.policyViolations.LICENSE.Total + project.policyViolations.SECURITY.Total }}"{% if project.Total + project.policyViolations.COMPONENT.Total + project.policyViolations.LICENSE.Total + project.policyViolations.SECURITY.Total == 0 %} class="empty-row"{% endif %}>
                         <td>
                             {% if project.isDormant == True %}
                             <span style='color:red'>&#9888;&nbsp;</span>
                             {% endif %}
                             <strong>{{ project.projectName }}</strong>
                         </td>
-                        <td>{{ project.Total }}</td>
+                        <td>{{ project.NEW.Total }}</td>
                         <td>
-                            {% if (project.NEW.CRITICAL + project.IGNORED.CRITICAL) > 0 %}
-                            <span class="severity-badge severity-critical">{{ project.NEW.CRITICAL + project.IGNORED.CRITICAL }}</span>
+                            {% if project.NEW.CRITICAL > 0 %}
+                            <span class="severity-badge severity-critical">{{ project.NEW.CRITICAL }}</span>
                             {% else %}
                             -
                             {% endif %}
                         </td>
                         <td>
-                            {% if (project.NEW.HIGH + project.IGNORED.HIGH) > 0 %}
-                            <span class="severity-badge severity-high">{{ project.NEW.HIGH + project.IGNORED.HIGH }}</span>
+                            {% if project.NEW.HIGH > 0 %}
+                            <span class="severity-badge severity-high">{{ project.NEW.HIGH }}</span>
                             {% else %}
                             -
                             {% endif %}
                         </td>
                         <td>
-                            {% if (project.NEW.MEDIUM + project.IGNORED.MEDIUM) > 0 %}
-                            <span class="severity-badge severity-medium">{{ project.NEW.MEDIUM + project.IGNORED.MEDIUM }}</span>
+                            {% if project.NEW.MEDIUM > 0 %}
+                            <span class="severity-badge severity-medium">{{ project.NEW.MEDIUM }}</span>
                             {% else %}
                             -
                             {% endif %}
                         </td>
                         <td>
-                            {% if (project.NEW.LOW + project.IGNORED.LOW) > 0 %}
-                            <span class="severity-badge severity-low">{{ project.NEW.LOW + project.IGNORED.LOW }}</span>
+                            {% if project.NEW.LOW > 0 %}
+                            <span class="severity-badge severity-low">{{ project.NEW.LOW }}</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set managed = project.Total - project.NEW.Total %}
+                            {% if managed > 0 %}
+                            {{ managed }}
                             {% else %}
                             -
                             {% endif %}
                         </td>
                         <td>{{ project.policyViolations.COMPONENT.Total + project.policyViolations.LICENSE.Total + project.policyViolations.SECURITY.Total }}</td>
-                        <td>{{ project.updatedAt[:10] }}</td>
+                        <td>{{ project.latestScanDate if project.latestScanDate is defined else '-' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -328,6 +388,58 @@
     </div>
 
     <script>
+        // Hide/show empty rows
+        function toggleEmptyRows() {
+            const hide = document.getElementById('hideEmptyRows').checked;
+            document.querySelectorAll('#projectsTable tbody tr.empty-row').forEach(row => {
+                row.classList.toggle('show-empty', !hide);
+            });
+        }
+        // Apply default state on load
+        document.addEventListener('DOMContentLoaded', toggleEmptyRows);
+
+        // Project Details table sorting
+        let _sortState = { col: -1, dir: 'asc' };
+
+        function sortProjectsTable(colIndex, isNumeric) {
+            const table = document.querySelector('.projects-table table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const headers = Array.from(table.querySelectorAll('th.sortable'));
+
+            if (_sortState.col === colIndex) {
+                _sortState.dir = _sortState.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                _sortState.col = colIndex;
+                _sortState.dir = 'asc';
+            }
+
+            headers.forEach((th, i) => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (i === colIndex) {
+                    th.classList.add(_sortState.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
+
+            rows.sort((a, b) => {
+                const aText = a.cells[colIndex].textContent.trim();
+                const bText = b.cells[colIndex].textContent.trim();
+                let aVal, bVal;
+                if (isNumeric) {
+                    aVal = (aText === '-' || aText === '') ? -1 : parseFloat(aText.replace(/[^0-9.-]/g, '')) || 0;
+                    bVal = (bText === '-' || bText === '') ? -1 : parseFloat(bText.replace(/[^0-9.-]/g, '')) || 0;
+                } else {
+                    aVal = aText.toLowerCase();
+                    bVal = bText.toLowerCase();
+                }
+                if (aVal < bVal) return _sortState.dir === 'asc' ? -1 : 1;
+                if (aVal > bVal) return _sortState.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
         const data = {{ dataJson | safe }};
         
         // Chart.js default settings
@@ -342,10 +454,10 @@
                 labels: ['Critical', 'High', 'Medium', 'Low'],
                 datasets: [{
                     data: [
-                        data.NEW.CRITICAL + data.IGNORED.CRITICAL + data.NEEDS_REVIEW.CRITICAL + data.PATCHED.CRITICAL + data.MITIGATED.CRITICAL,
-                        data.NEW.HIGH + data.IGNORED.HIGH + data.NEEDS_REVIEW.HIGH + data.PATCHED.HIGH + data.MITIGATED.HIGH,
-                        data.NEW.MEDIUM + data.IGNORED.MEDIUM + data.NEEDS_REVIEW.MEDIUM + data.PATCHED.MEDIUM + data.MITIGATED.MEDIUM,
-                        data.NEW.LOW + data.IGNORED.LOW + data.NEEDS_REVIEW.LOW + data.PATCHED.LOW + data.MITIGATED.LOW
+                        data.NEW.CRITICAL,
+                        data.NEW.HIGH,
+                        data.NEW.MEDIUM,
+                        data.NEW.LOW
                     ],
                     backgroundColor: ['#e53e3e', '#dd6b20', '#d69e2e', '#38a169'],
                     borderWidth: 2,

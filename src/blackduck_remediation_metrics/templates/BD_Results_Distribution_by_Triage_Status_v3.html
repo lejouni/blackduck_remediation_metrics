@@ -747,6 +747,7 @@
       <th class="sortable" onclick="sortTable('totalIssuesTable', 6)">Total</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['Total'] > 0 %}
       <tr>
         {% if key['isDormant'] == True %}
         <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
@@ -760,6 +761,7 @@
         <td>{{key["NEW"]['NONE']+key["IGNORED"]['NONE']+key["DUPLICATE"]['NONE']+key["MITIGATED"]['NONE']+key["NEEDS_REVIEW"]['NONE']+key["PATCHED"]['NONE']+key["REMEDIATION_COMPLETE"]['NONE']+key["REMEDIATION_REQUIRED"]['NONE']+key["NOT_AFFECTED"]['NONE']+key["AFFECTED"]['NONE']+key["UNDER_INVESTIGATION"]['NONE']}}</td>
         <td><b>{{key["NEW"]['Total']+key["IGNORED"]['Total']+key["DUPLICATE"]['Total']+key["MITIGATED"]['Total']+key["NEEDS_REVIEW"]['Total']+key["PATCHED"]['Total']+key["REMEDIATION_COMPLETE"]['Total']+key["REMEDIATION_REQUIRED"]['Total']+key["NOT_AFFECTED"]['Total']+key["AFFECTED"]['Total']+key["UNDER_INVESTIGATION"]['Total']}}</b></td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -777,6 +779,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['NEW']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -791,6 +794,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -808,6 +812,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["NEW"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -821,6 +826,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -835,6 +841,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['IGNORED']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -849,6 +856,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -866,6 +874,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["IGNORED"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -879,6 +888,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -893,6 +903,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['DUPLICATE']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -907,6 +918,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -924,6 +936,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["DUPLICATE"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -937,6 +950,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -951,6 +965,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['MITIGATED']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -965,6 +980,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -982,6 +998,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["MITIGATED"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -995,6 +1012,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -1009,6 +1027,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['NEEDS_REVIEW']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -1023,6 +1042,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -1040,6 +1060,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["NEEDS_REVIEW"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -1053,6 +1074,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -1067,6 +1089,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['PATCHED']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -1081,6 +1104,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -1098,6 +1122,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["PATCHED"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -1111,6 +1136,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -1125,6 +1151,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['REMEDIATION_COMPLETE']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -1139,6 +1166,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -1156,6 +1184,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_COMPLETE"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -1169,6 +1198,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -1183,6 +1213,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['REMEDIATION_REQUIRED']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -1197,6 +1228,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -1214,6 +1246,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["REMEDIATION_REQUIRED"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -1227,6 +1260,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   <br>
@@ -1241,6 +1275,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['NOT_AFFECTED']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -1255,6 +1290,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -1272,6 +1308,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["NOT_AFFECTED"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -1285,6 +1322,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   {% endif %}
@@ -1299,6 +1337,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['AFFECTED']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -1313,6 +1352,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -1330,6 +1370,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["AFFECTED"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -1343,6 +1384,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   {% endif %}
@@ -1357,6 +1399,7 @@
       <th>Versions</th>
     </tr>
 {% for key in totals['projects'] %}
+{% if showEmpty or key['UNDER_INVESTIGATION']['Total'] > 0 %}
       <tr>
         <td><b><a href={{bdURL}}/api/projects/{{key['projectID']}}>{{key['projectName']}} (version count: {{key['projectVersionCount']}})</a></b></td>
         <td>
@@ -1371,6 +1414,7 @@
               <th>Total</th>
             </tr>
             {% for key2 in key['projectVersionLevelCounts'] %}
+            {% if showEmpty or key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['Total'] > 0 %}
             <tr>
               {% if key2['isDormant'] == True %}
               <td><span style='color:red'>&#9888;&nbsp;</span><b><a href={{bdURL}}/api/projects/{{key['projectID']}}/versions/{{key2['versionID']}}/vulnerability-bom?componentList.offset=0&componentList.sort=project.name+ASC&vulns.offset=0>{{key2['versionName']}}</a></b>
@@ -1388,6 +1432,7 @@
               <td>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['NONE']}}</td>
               <td><b>{{key2['vulnerableComponentCountsByRemediationStatus']["UNDER_INVESTIGATION"]['Total']}}</b></td>
             </tr>
+            {% endif %}
             {% endfor %}
             <tr>
               <td><b>Totals</b></td>
@@ -1401,6 +1446,7 @@
           </table>
         </td>
       </tr>
+{% endif %}
     {% endfor %}
   </table>
   {% endif %}

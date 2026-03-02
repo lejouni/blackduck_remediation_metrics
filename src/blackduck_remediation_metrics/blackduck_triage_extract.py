@@ -660,6 +660,21 @@ def getDate(source, whichDate):
         return datetime.strftime(datetime_to_modify, "%B %d, %Y")
     return "-"
 
+def computeLatestScanDates(totals):
+    """Compute the latest lastScanDate across all versions for each project and store it as latestScanDate."""
+    for project in totals.get("projects", []):
+        latestDate = None
+        for version in project.get("projectVersionLevelCounts", []):
+            scanDate = version.get("lastScanDate", "-")
+            if scanDate and scanDate != "-":
+                try:
+                    d = datetime.strptime(scanDate, "%B %d, %Y")
+                    if latestDate is None or d > latestDate:
+                        latestDate = d
+                except ValueError:
+                    pass
+        project["latestScanDate"] = latestDate.strftime("%B %d, %Y") if latestDate else "-"
+
 def addToTotals(projectCount, instanceLevelCount):
     remediationstatuses = ["NEW","IGNORED","DUPLICATE","MITIGATED","NEEDS_REVIEW","PATCHED","REMEDIATION_COMPLETE","REMEDIATION_REQUIRED", "NOT_AFFECTED", "AFFECTED", "UNDER_INVESTIGATION", "NONE"]
     severities = ["MEDIUM","HIGH","CRITICAL","LOW", "NONE", "Total"]
@@ -798,6 +813,7 @@ def main():
         parser.add_argument('--cache', action='store_true', help='use tinyDB as a cache')
         parser.add_argument('--cache_truncate', action='store_true', help='will clean the given cache file')
         parser.add_argument('--sinceDays', type=int, default=30, help="The number of days before which to find project version dormant. (Default 30 days)", required=False)
+        parser.add_argument('--show-empty', dest='show_empty', action='store_true', help='show projects and versions with zero counts in all report tables (by default rows with no findings are hidden)')
         args = parser.parse_args()
         #Initializing the logger
         logging.getLogger("requests").setLevel(logging.WARNING)
@@ -824,6 +840,7 @@ def main():
         totals = addFindings()
         db.close()
         if totals:
+            computeLatestScanDates(totals)
             if int(totals['Total']) > 0:
                 timeFilenameFormat = '%Y%m%d%H%M%S'
                 timeFormat = '%Y-%m-%d %H:%M:%S'
@@ -871,6 +888,7 @@ def main():
                                             project = args.project,
                                             version = args.project_version,
                                             sinceDays = args.sinceDays,
+                                            showEmpty = args.show_empty,
                                             totals = totals)
                     tqdm.write("Done")
 
