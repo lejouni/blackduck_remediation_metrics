@@ -80,6 +80,7 @@ Version History:
 import logging
 import sys
 import argparse
+import gzip
 from blackduck.HubRestApi import HubInstance
 from timeit import default_timer as timer
 import jinja2
@@ -100,7 +101,7 @@ except ImportError:
 
 
 __author__ = "Jouni Lehto"
-__version__ = "0.1.21"
+__version__ = "0.1.22"
 
 #Global variables
 args = "" 
@@ -814,6 +815,7 @@ def main():
         parser.add_argument('--cache_truncate', action='store_true', help='will clean the given cache file')
         parser.add_argument('--sinceDays', type=int, default=30, help="The number of days before which to find project version dormant. (Default 30 days)", required=False)
         parser.add_argument('--show-empty', dest='show_empty', action='store_true', help='show projects and versions with zero counts in all report tables (by default rows with no findings are hidden)')
+        parser.add_argument('--compress', action='store_true', help='gzip-compress HTML and dashboard output files (.html.gz); browsers open these natively')
         args = parser.parse_args()
         #Initializing the logger
         logging.getLogger("requests").setLevel(logging.WARNING)
@@ -867,9 +869,13 @@ def main():
                         sinceDays = args.sinceDays
                     )
                     
-                    dashboardFile = args.dir + '/dashboard_bd_' + timestamp + '.html'
-                    with open(dashboardFile, "w", encoding='utf-8') as fh:
-                        fh.write(dashboardHtml)
+                    dashboardFile = args.dir + '/dashboard_bd_' + timestamp + ('.html.gz' if args.compress else '.html')
+                    if args.compress:
+                        with gzip.open(dashboardFile, 'wb') as fh:
+                            fh.write(dashboardHtml.encode('utf-8'))
+                    else:
+                        with open(dashboardFile, "w", encoding='utf-8') as fh:
+                            fh.write(dashboardHtml)
                     tqdm.write(f"Dashboard created: {dashboardFile}")
                 if (args.html or args.pdf):
                     # Setup template stuff
@@ -894,9 +900,13 @@ def main():
 
                     if (args.html):
                         tqdm.write("Creating HTML report...")
-                        file = args.dir + '/' + outputPrefix + '.html'
-                        with open(file, "w", encoding='utf-8') as fh:
-                            fh.write(htmlText)
+                        file = args.dir + '/' + outputPrefix + ('.html.gz' if args.compress else '.html')
+                        if args.compress:
+                            with gzip.open(file, 'wb') as fh:
+                                fh.write(htmlText.encode('utf-8'))
+                        else:
+                            with open(file, "w", encoding='utf-8') as fh:
+                                fh.write(htmlText)
                         tqdm.write("Done")
                     
                     if (args.pdf):
