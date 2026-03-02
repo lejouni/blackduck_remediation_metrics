@@ -168,7 +168,9 @@ bd-metrics --token="<ACCESS_TOKEN>" --url="<BD_URL>" --dir="./reports" --html --
 ### Output and Logging Options
 
 | Parameter | Description | Default |
-|-----------|-------------|---------|| `-v`, `--version` | Display version information and exit | N/A || `--dir` | Output directory for generated reports | `.` (current directory) |
+|-----------|-------------|---------|
+| `-v`, `--version` | Display version information and exit | N/A |
+| `--dir` | Output directory for generated reports | `.` (current directory) |
 | `--log_level` | Logging level for console output | `INFO` |
 | `--sinceDays` | Number of days to mark project versions as dormant (shows warning icon) | `30` |
 | `--compress` | Gzip-compress HTML and dashboard output files (`.html.gz`); all modern browsers open these natively | Disabled |
